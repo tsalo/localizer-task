@@ -187,6 +187,9 @@ if __name__ == '__main__':
         ----------
         block_duration : (numeric) duration in seconds of each block of trials
         """
+        # Rest
+        draw(win=window, stim=crosshair, duration=block_duration)
+
         # Checkerboards
         flash_stimuli(
             window, checkerboards, duration=block_duration, frequency=5,
@@ -213,6 +216,9 @@ if __name__ == '__main__':
         music.play()  # play method does not block
         psychopy.core.wait(block_duration)
         music.stop()
+
+        # Rest
+        draw(win=window, stim=crosshair, duration=block_duration)
 
         # Reading/speaking
         draw(win=window, stim=passage, duration=block_duration)
