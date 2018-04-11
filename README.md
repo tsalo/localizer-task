@@ -22,4 +22,4 @@ All images and audio used by this paradigm are in the public domain.
 
 ### Audio
 
-- "Funkeriffic" - [link](https://freepd.com/Jazz/Funkeriffic)
+- "Funkeriffic" - [link](https://freepd.com/music/Funkeriffic.mp3)
