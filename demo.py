@@ -1,15 +1,16 @@
-"""Demo psychopy paradigm.
+"""
+Block design functional localizer task for M1, V1, and A1.
 
-One task functional run that alternates 16s blocks of rest with the following
+Single-run task that alternates 16s blocks of rest with the following
 tasks:
 
 - flashing checkerboard
 - finger tapping
-- looking at various faces
-- listening to music/singing
-- reading/speaking
+- listening to tones
 
 and then a fixed checkerboard for a resting state scan.
+
+Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
 
 from __future__ import division, print_function
@@ -17,6 +18,7 @@ from __future__ import division, print_function
 import glob
 import os
 import time
+from datetime import datetime
 
 import numpy as np
 import psychopy
@@ -30,23 +32,15 @@ psychopy.prefs.general['audioDevice'] = ['Built-in Output']
 
 import psychopy.sound
 
-_tapping_instructions = "Tap your fingers as quickly as possible!"
+_TAPPING_INSTRUCTIONS = 'Tap your fingers as quickly as possible!'
 
-_face_files = sorted(glob.glob(os.path.join('faces', '*.png')))
 # This track is 16 seconds long.
-_music_file = os.path.join('music', 'funkeriffic.wav')
+_MUSIC_FILE = os.path.join('music', 'funkeriffic.wav')
 
-# Excerpt from rainbow passage.
-# https://www.dialectsarchive.com/the-rainbow-passage
-_passage = """When the sunlight strikes raindrops in the air, they act as \
-a prism and form a rainbow. The rainbow is a division of white light into \
-many beautiful colors. These take the shape of a long round arch, with its \
-path high above, and its two ends apparently beyond the horizon. There is, \
-according to legend, a boiling pot of gold at one end. People look, but no \
-one ever finds it. When a man looks for something beyond his reach, his \
-friends say he is looking for the pot of gold at the end of the rainbow. \
-Throughout the centuries people have explained the rainbow in various ways.
-"""
+_INSTRUCTIONS = """Watch the screen. A flashing checkerboard will be shown \
+and music will be played at various times. Please pay attention to both \
+stimuli. Whenever there is a checkerboard on the screen or music is playing, \
+tap your fingers of both hands as fast as you can."""
 
 
 def close_on_esc(win):
@@ -56,7 +50,8 @@ def close_on_esc(win):
 
 
 def flash_stimuli(win, stimuli, duration, frequency=1):
-    """Flash stimuli.
+    """
+    Flash stimuli.
 
     Parameters
     ----------
@@ -83,7 +78,8 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
 
 
 def draw(win, stim, duration):
-    """Draw stimulus for a given duration.
+    """
+    Draw stimulus for a given duration.
 
     Parameters
     ----------
@@ -100,7 +96,8 @@ def draw(win, stim, duration):
 
 
 class Checkerboard(object):
-    """Create an instance of a `Checkerboard` object.
+    """
+    Create an instance of a `Checkerboard` object.
 
     Parameters
     ----------
@@ -155,25 +152,16 @@ if __name__ == '__main__':
         psychopy.core.quit()
 
     window = psychopy.visual.Window(
-        size=(800, 600), fullscr=True, monitor='testMonitor', units='deg',
+        size=(800, 600), fullscr=False, monitor='testMonitor', units='deg',
     )
 
     # Initialize stimuli
     # ------------------
-    # Checkerboards
+    instructions = psychopy.visual.TextStim(window, _INSTRUCTIONS, height=2)
+    # Checkerboards (with finger tapping)
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
-    # Finger tapping
-    tapping = psychopy.visual.TextStim(
-        window, _tapping_instructions, height=2, wrapWidth=30
-    )
-    # Various faces
-    faces = tuple(psychopy.visual.ImageStim(window, f) for f in _face_files)
-    # Reading/speaking texts
-    passage = psychopy.visual.TextStim(
-        window, _passage, wrapWidth=30, height=1.5
-    )
-    # Music
-    music = psychopy.sound.Sound(_music_file)
+    # Music (with finger tapping)
+    music = psychopy.sound.Sound(_MUSIC_FILE)
     # Rest between tasks
     crosshair = psychopy.visual.TextStim(window, '+', height=2)
     # Waiting for scanner
@@ -187,44 +175,29 @@ if __name__ == '__main__':
         ----------
         block_duration : (numeric) duration in seconds of each block of trials
         """
-        # Rest
-        draw(win=window, stim=crosshair, duration=block_duration)
-
-        # Checkerboards
-        flash_stimuli(
-            window, checkerboards, duration=block_duration, frequency=5,
-        )
+        # Instructions
+        draw(win=window, stim=instructions, duration=block_duration)
 
         # Rest
-        draw(win=window, stim=crosshair, duration=block_duration)
+        draw(win=window, stim=crosshair, duration=5)
 
-        # Finger tapping
-        draw(window, tapping, duration=block_duration)
-        # Rest
-        draw(win=window, stim=crosshair, duration=block_duration)
-
-        # Faces
-        for _this_face in faces:
-            draw(
-                win=window, stim=_this_face,
-                duration=block_duration / len(faces)
+        for i in range(1):
+            # Checkerboards
+            flash_stimuli(
+                window, checkerboards, duration=block_duration, frequency=5,
             )
-        # Rest
-        draw(win=window, stim=crosshair, duration=block_duration)
 
-        # Music
-        music.play()  # play method does not block
-        psychopy.core.wait(block_duration)
-        music.stop()
+            # Rest
+            draw(win=window, stim=crosshair, duration=block_duration)
 
-        # Rest
-        draw(win=window, stim=crosshair, duration=block_duration)
+            # Music
+            music.play()  # play method does not block
+            psychopy.core.wait(block_duration)
+            music.stop()
 
-        # Reading/speaking
-        draw(win=window, stim=passage, duration=block_duration)
+            # Rest
+            draw(win=window, stim=crosshair, duration=block_duration)
 
-        # Rest
-        draw(win=window, stim=crosshair, duration=block_duration)
 
     def run_rest(duration):
         """Run rest.
@@ -242,12 +215,15 @@ if __name__ == '__main__':
     window.flip()
     psychopy.event.waitKeys(keyList=['num_add', 'plus', '+', 'space'])
 
+    startTime = datetime.now()
+
     if options['trials']:
-        run_trials(options['trials_block_duration_sec'])
+        run_trials(float(options['trials_block_duration_sec']))
     elif options['rest']:
-        run_rest(options['rest_duration_sec'])
+        run_rest(float(ooptions['rest_duration_sec']))
 
     draw(win=window, stim=thanks, duration=5)
 
     window.close()
+    print(datetime.now() - startTime)
     psychopy.core.quit()
