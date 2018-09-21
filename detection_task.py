@@ -1,14 +1,12 @@
 """
-Block design functional localizer task for M1, V1, and A1.
+Block design for M1, V1, and A1 BOLD response detection (i.e., a functional
+localizer).
 
-Single-run task that alternates 16s blocks of rest with the following
-tasks:
-
+Single-run task that alternates blocks of rest with blocks of the following
+conditions:
 - flashing checkerboard
 - finger tapping
 - listening to tones
-
-and then a fixed checkerboard for a resting state scan.
 
 Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
