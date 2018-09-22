@@ -1,24 +1,12 @@
-# Demo PsychoPy Paradigm
+# localizer-task
 
-Demo task that alternates between periods of rest and:
+A pair of tasks for detection and estimation, respectively, of V1, M1, and A1. The detection task is a block design with alternating periods of rest, flashing checkerboard (with finger tapping), and listening to tones/music (with finger tapping). The estimation task is a slow event-related design with trials of flashing checkerboard, finger tapping, and tones/music.
 
-- flashing checkerboard
-- finger tapping
-- looking at various faces
-- listening to music
-- reading/speaking
-
+These tasks are adapted from a PsychoPy demo task created by Jakub Kaczmarzyk.
 
 ## Content attribution
 
 All images and audio used by this paradigm are in the public domain.
-
-### Images
-
-- Barack Obama - [link](https://en.wikipedia.org/wiki/Barack_Obama#/media/File:President_Barack_Obama.jpg)
-- Matt Damon - [link](https://en.wikipedia.org/wiki/Matt_Damon#/media/File:Matt_Damon_TIFF_2015.jpg)
-- Queen Elizabeth - [link](https://en.wikipedia.org/wiki/File:Elizabeth_II_greets_NASA_GSFC_employees,_May_8,_2007_edit.jpg)
-- Scarlett Johansson - [link](https://commons.wikimedia.org/wiki/File:Scarlett_Johansson_in_Kuwait_02.jpg)
 
 ### Audio
 
