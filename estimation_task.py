@@ -151,7 +151,7 @@ if __name__ == '__main__':
     # Music (with finger tapping)
     tones = [psychopy.sound.Sound(tf) for tf in _TONE_FILES]
     tone_nums = np.arange(len(tones))
-    np.shuffle(tone_nums)
+    np.random.shuffle(tone_nums)
     # Finger tapping instructions
     tapping = psychopy.visual.TextStim(window, _TAPPING_INSTRUCTIONS, height=2,
                                        wrapWidth=30)
@@ -177,7 +177,7 @@ if __name__ == '__main__':
         trials[n_cond_trials:(2*n_cond_trials)] = 2
         trials[(2*n_cond_trials):] = 3
         # randomize order
-        np.shuffle(trials)
+        np.random.shuffle(trials)
         c = 0
 
         for trial in trials:
