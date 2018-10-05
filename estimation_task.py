@@ -30,8 +30,15 @@ import psychopy.sound
 
 _TAPPING_INSTRUCTIONS = 'Tap your fingers as quickly as possible!'
 
-# This track is 16 seconds long.
-_MUSIC_FILE = os.path.join('music', 'funkeriffic.wav')
+# These tracks are 20 seconds long.
+# 10s versions created by
+# https://www.audiocheck.net/audiofrequencysignalgenerator_sinetone.php
+# Durations doubled with Audacity.
+_TONE_FILES = ['audio/250Hz_20s.wav',
+               'audio/500Hz_20s.wav',
+               'audio/600Hz_20s.wav',
+               'audio/750Hz_20s.wav',
+               'audio/850Hz_20s.wav']
 
 _INSTRUCTIONS = """Watch the screen. A flashing checkerboard will be shown \
 and music will be played at various times. Please pay attention to both \
@@ -130,23 +137,8 @@ class Checkerboard(object):
 
 
 if __name__ == '__main__':
-
     # Collect user input
     # ------------------
-    options = {
-        'trials_block_duration_sec': 16,
-        'rest_duration_sec': 360,
-        'trials': False,
-        'rest': False,
-    }
-    _order = [
-        'rest', 'trials', 'trials_block_duration_sec', 'rest_duration_sec'
-    ]
-    dialog = psychopy.gui.DlgFromDict(options, order=_order)
-
-    if not dialog.OK:
-        psychopy.core.quit()
-
     window = psychopy.visual.Window(
         size=(800, 600), fullscr=False, monitor='testMonitor', units='deg',
     )
@@ -157,52 +149,57 @@ if __name__ == '__main__':
     # Checkerboards (with finger tapping)
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
     # Music (with finger tapping)
-    music = psychopy.sound.Sound(_MUSIC_FILE)
+    tones = [psychopy.sound.Sound(tf) for tf in _TONE_FILES]
+    tone_nums = np.arange(len(tones))
+    np.random.shuffle(tone_nums)
+    # Finger tapping instructions
+    tapping = psychopy.visual.TextStim(window, _TAPPING_INSTRUCTIONS, height=2,
+                                       wrapWidth=30)
     # Rest between tasks
     crosshair = psychopy.visual.TextStim(window, '+', height=2)
     # Waiting for scanner
     waiting = psychopy.visual.TextStim(window, "Waiting for scanner ...")
-    thanks = psychopy.visual.TextStim(window, "Thank you!", height=2)
 
-    def run_trials(block_duration):
+    def run_trials(trial_duration=1, rest_duration=15, n_trials=10):
         """Run alternating trials.
+
+        ((15 + 1) * 3) * 10 = 480 (8 minutes, plus 5 seconds for initial rest)
 
         Parameters
         ----------
-        block_duration : (numeric) duration in seconds of each block of trials
+        trial_duration : (numeric) duration in seconds of each block of trials
         """
-        # Instructions
-        draw(win=window, stim=instructions, duration=block_duration)
-
         # Rest
         draw(win=window, stim=crosshair, duration=5)
 
-        for i in range(1):
-            # Checkerboards
-            flash_stimuli(
-                window, checkerboards, duration=block_duration, frequency=5,
-            )
+        n_cond_trials = int(n_trials / 3)  # n_trials must be divisible by 3
+        trials = np.ones(n_trials)
+        trials[n_cond_trials:(2*n_cond_trials)] = 2
+        trials[(2*n_cond_trials):] = 3
+        # randomize order
+        np.random.shuffle(trials)
+        c = 0
+
+        for trial in trials:
+            if trial == 1:
+                # flashing checkerboard
+                flash_stimuli(window, checkerboards, duration=trial_duration,
+                              frequency=5)
+            elif trial == 2:
+                # tone
+                tone_num = tone_nums[c]
+                tones[c].play()
+                psychopy.core.wait(trial_duration)
+                tones[c].stop()
+                c += 1
+            elif trial == 3:
+                # finger tapping
+                draw(win=window, stim=tapping, duration=trial_duration)
+            else:
+                raise Exception()
 
             # Rest
-            draw(win=window, stim=crosshair, duration=block_duration)
-
-            # Music
-            music.play()  # play method does not block
-            psychopy.core.wait(block_duration)
-            music.stop()
-
-            # Rest
-            draw(win=window, stim=crosshair, duration=block_duration)
-
-
-    def run_rest(duration):
-        """Run rest.
-
-        Parameters
-        ----------
-        duration : (numeric) duration in seconds of rest block.
-        """
-        draw(win=window, stim=crosshair, duration=duration)
+            draw(win=window, stim=crosshair, duration=rest_duration)
 
     # Scanner runtime
     # ---------------
@@ -213,12 +210,7 @@ if __name__ == '__main__':
 
     startTime = datetime.now()
 
-    if options['trials']:
-        run_trials(float(options['trials_block_duration_sec']))
-    elif options['rest']:
-        run_rest(float(ooptions['rest_duration_sec']))
-
-    draw(win=window, stim=thanks, duration=5)
+    run_trials(1, 15, 18)
 
     window.close()
     print(datetime.now() - startTime)
