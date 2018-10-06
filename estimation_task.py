@@ -139,6 +139,7 @@ class Checkerboard(object):
 if __name__ == '__main__':
     # Collect user input
     # ------------------
+    # Remember to turn fullscr to True for the real deal.
     window = psychopy.visual.Window(
         size=(800, 600), fullscr=False, monitor='testMonitor', units='deg',
     )
@@ -151,6 +152,7 @@ if __name__ == '__main__':
     # Music (with finger tapping)
     tones = [psychopy.sound.Sound(tf) for tf in _TONE_FILES]
     tone_nums = np.arange(len(tones))
+    tone_nums = np.repeat(tone_nums, 5)  # just assume 25 trials for now
     np.random.shuffle(tone_nums)
     # Finger tapping instructions
     tapping = psychopy.visual.TextStim(window, _TAPPING_INSTRUCTIONS, height=2,
@@ -160,10 +162,10 @@ if __name__ == '__main__':
     # Waiting for scanner
     waiting = psychopy.visual.TextStim(window, "Waiting for scanner ...")
 
-    def run_trials(trial_duration=1, rest_duration=15, n_trials=10):
+    def run_trials(trial_duration=1, rest_duration=15, n_trials=30):
         """Run alternating trials.
 
-        ((15 + 1) * 3) * 10 = 480 (8 minutes, plus 5 seconds for initial rest)
+        (15 + 1) * (10 * 3) = 480 (8 minutes, plus 5 seconds for initial rest)
 
         Parameters
         ----------
@@ -172,27 +174,28 @@ if __name__ == '__main__':
         # Rest
         draw(win=window, stim=crosshair, duration=5)
 
+        assert n_trials % 3 == 0, 'N. trials must be divisible by N. conds (3)'
         n_cond_trials = int(n_trials / 3)  # n_trials must be divisible by 3
         trials = np.ones(n_trials)
         trials[n_cond_trials:(2*n_cond_trials)] = 2
         trials[(2*n_cond_trials):] = 3
         # randomize order
         np.random.shuffle(trials)
-        c = 0
 
-        for trial in trials:
-            if trial == 1:
+        c = 0  # tone trial counter
+        for trial_type in trials:
+            if trial_type == 1:
                 # flashing checkerboard
                 flash_stimuli(window, checkerboards, duration=trial_duration,
                               frequency=5)
-            elif trial == 2:
+            elif trial_type == 2:
                 # tone
                 tone_num = tone_nums[c]
-                tones[c].play()
+                tones[tone_num].play()
                 psychopy.core.wait(trial_duration)
-                tones[c].stop()
+                tones[tone_num].stop()
                 c += 1
-            elif trial == 3:
+            elif trial_type == 3:
                 # finger tapping
                 draw(win=window, stim=tapping, duration=trial_duration)
             else:
