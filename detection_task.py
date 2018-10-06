@@ -141,6 +141,7 @@ class Checkerboard(object):
 if __name__ == '__main__':
     # Collect user input
     # ------------------
+    # Remember to turn fullscr to True for the real deal.
     window = psychopy.visual.Window(
         size=(800, 600), fullscr=False, monitor='testMonitor', units='deg',
     )
