@@ -160,7 +160,6 @@ if __name__ == '__main__':
     crosshair = psychopy.visual.TextStim(window, '+', height=2)
     # Waiting for scanner
     waiting = psychopy.visual.TextStim(window, "Waiting for scanner ...")
-
     def run_trials(block_duration=16, n_blocks=5):
         """Run alternating trials.
 
@@ -191,9 +190,11 @@ if __name__ == '__main__':
 
             # Finger tapping
             draw(win=window, stim=tapping, duration=block_duration)
+            tap_key_press = psychopy.event.getKeys(timeStamped=True)
 
             # Rest
             draw(win=window, stim=crosshair, duration=block_duration)
+            print(tap_key_press)
 
     # Scanner runtime
     # ---------------
