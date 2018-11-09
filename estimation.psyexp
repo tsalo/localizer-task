@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+<PsychoPy2experiment encoding="utf-8" version="1.90.2">
+  <Settings>
+    <Param name="expName" updates="None" val="estimation" valType="str"/>
+    <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
+    <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
+    <Param name="Experiment info" updates="None" val="{'participant':'', 'session':'001'}" valType="code"/>
+    <Param name="Use version" updates="None" val="" valType="str"/>
+    <Param name="Full-screen window" updates="None" val="True" valType="bool"/>
+    <Param name="Window size (pixels)" updates="None" val="(1024, 768)" valType="code"/>
+    <Param name="Screen" updates="None" val="1" valType="num"/>
+    <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
+    <Param name="color" updates="None" val="$[0,0,0]" valType="str"/>
+    <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
+    <Param name="Units" updates="None" val="use prefs" valType="str"/>
+    <Param name="blendMode" updates="None" val="avg" valType="str"/>
+    <Param name="Show mouse" updates="None" val="False" valType="bool"/>
+    <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code"/>
+    <Param name="Save log file" updates="None" val="True" valType="bool"/>
+    <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
+    <Param name="Save csv file" updates="None" val="False" valType="bool"/>
+    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
+    <Param name="Save psydat file" updates="None" val="True" valType="bool"/>
+    <Param name="logging level" updates="None" val="exp" valType="code"/>
+    <Param name="OSF Project ID" updates="None" val="" valType="str"/>
+    <Param name="HTML path" updates="None" val="html" valType="str"/>
+    <Param name="JS libs" updates="None" val="packaged" valType="str"/>
+  </Settings>
+  <Routines>
+    <Routine name="trial">
+      <CodeComponent name="code">
+        <Param name="name" updates="None" val="code" valType="code"/>
+        <Param name="Begin Experiment" updates="constant" val="from glob import glob&amp;#10;TONE_FILES = glob('audio/*Hz_20s.wav')&amp;#10;TONE_FILES = TONE_FILES * 3&amp;#10;&amp;#10;def flash_stimuli(win, stimuli, duration, frequency=1):     &quot;&quot;&quot;     Flash stimuli.      Parameters     ----------     win : (psychopy.visual.Window) window in which to draw stimuli     stimuli : (iterable) some iterable of objects with `.draw()` method     duration : (numeric) duration of flashing in seconds     frequency : (numeric) frequency of flashing in Hertz     &quot;&quot;&quot;     start = time.time()     duration_one_display = 1 / frequency     n_stim = len(stimuli)     counter = 0      while time.time() - start &lt; duration:         _this_start = time.time()         while time.time() - _this_start &lt; duration_one_display:             this_stim = stimuli[counter % n_stim]             this_stim.draw()             win.flip()             if time.time() - start &gt;= duration:                 return             close_on_esc(win)         counter += 1   def draw(win, stim, duration):     &quot;&quot;&quot;     Draw stimulus for a given duration.      Parameters     ----------     win : (psychopy.visual.Window)     stim : object with `.draw()` method     duration : (numeric) duration in seconds to display the stimulus     &quot;&quot;&quot;     # Use a busy loop instead of sleeping so we can exit early if need be.     start_time = time.time()     while time.time() - start_time &lt; duration:         stim.draw()         close_on_esc(win)         win.flip()   class Checkerboard(object):     &quot;&quot;&quot;     Create an instance of a `Checkerboard` object.      Parameters     ----------     win : (psychopy.visual.Window) window in which to display stimulus     side_len : (int) number of rings in radial checkerboard     inverted : (bool) if true, invert black and white squares     size : (numeric) size of checkerboard     kwds : keyword arguments to psychopy.visual.ImageStim     &quot;&quot;&quot;      def __init__(self, win, side_len=8, inverted=False, size=16, **kwds):         self.win = win         self.side_len = side_len         self.inverted = inverted         self.size = size          self._array = self._get_array()         self._stim = psychopy.visual.RadialStim(             win=self.win, tex=self._array, size=self.size, radialCycles=1,             **kwds         )      def _get_array(self):         &quot;&quot;&quot;Return square `np.ndarray` of alternating ones and negative ones         with shape `(self.side_len, self.side_len)`.&quot;&quot;&quot;         board = np.ones((self.side_len, self.side_len), dtype=np.int32)         board[::2, ::2] = -1         board[1::2, 1::2] = -1         return board if not self.inverted else board * -1      def draw(self):         &quot;&quot;&quot;Draw checkerboard object.&quot;&quot;&quot;         self._stim.draw()&amp;#10;&amp;#10;stim_list = [1, 2, 3] * 10&amp;#10;np.random.shuffle(stim_list)&amp;#10;&amp;#10;np.random.shuffle(TONE_FILES)&amp;#10;tones = [psychopy.sound.Sound(tf) for tf in TONE_FILES]&amp;#10;&amp;#10;# Checkerboards (with finger tapping) checkerboards = (Checkerboard(win), Checkerboard(win, inverted=True))  # Finger tapping instructions tapping = psychopy.visual.TextStim(win, _TAPPING_INSTRUCTIONS, height=2,                                        wrapWidth=30) # Rest between tasks crosshair = psychopy.visual.TextStim(win, '+', height=2) # Waiting for scanner waiting = psychopy.visual.TextStim(win, &quot;Waiting for scanner ...&quot;)&amp;#10;&amp;#10;block_duration = 1&amp;#10;rest_duration = 15&amp;#10;i = 0" valType="extendedCode"/>
+        <Param name="Begin Routine" updates="constant" val="if stim_list[trials.thisN] == 1:&amp;#10;    flash_stimuli(win, checkerboards, duration=block_duration, frequency=5)&amp;#10;elif stim_list[trials.thisN] == 2:&amp;#10;    # Tone&amp;#10;    tones[i].play()&amp;#10;    psychopy.core.wait(block_duration)&amp;#10;    tones[i].stop()&amp;#10;    i += 1&amp;#10;elif stim_list[trials.thisN] == 3:&amp;#10;    draw(win=win, stim=tapping, duration=block_duration)&amp;#10;# Rest&amp;#10;draw(win=win, stim=crosshair, duration=rest_duration)" valType="extendedCode"/>
+        <Param name="Each Frame" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
+      </CodeComponent>
+      <KeyboardComponent name="key_resp_2">
+        <Param name="name" updates="None" val="key_resp_2" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopVal" updates="constant" val="$block_duration+$rest_duration" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="allowedKeys" updates="constant" val="'y','n','left','right','space'" valType="code"/>
+        <Param name="discard previous" updates="constant" val="True" valType="bool"/>
+        <Param name="store" updates="constant" val="last key" valType="str"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="storeCorrect" updates="constant" val="False" valType="bool"/>
+        <Param name="correctAns" updates="constant" val="" valType="str"/>
+        <Param name="syncScreenRefresh" updates="constant" val="True" valType="bool"/>
+      </KeyboardComponent>
+    </Routine>
+    <Routine name="instructions">
+      <CodeComponent name="begin_exp">
+        <Param name="name" updates="None" val="begin_exp" valType="code"/>
+        <Param name="Begin Experiment" updates="constant" val="import psychopy&amp;#10;import numpy as np&amp;#10;import time&amp;#10;instruc_txt = &quot;&quot;&quot;Watch the screen. A flashing checkerboard will be shown \ and music will be played at various times. Please pay attention to both \ stimuli. Whenever there is a checkerboard on the screen or music is playing, \ tap your fingers of both hands as fast as you can.&quot;&quot;&quot;&amp;#10;&amp;#10;_TAPPING_INSTRUCTIONS = 'Tap your fingers as quickly as possible!' &amp;#10;&amp;#10;def close_on_esc(win):     if 'escape' in psychopy.event.getKeys():         win.close()         psychopy.core.quit()" valType="extendedCode"/>
+        <Param name="Begin Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Each Frame" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End Routine" updates="constant" val="draw(win=win, stim=crosshair, duration=5)" valType="extendedCode"/>
+        <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
+      </CodeComponent>
+      <TextComponent name="instruc_text">
+        <Param name="name" updates="None" val="instruc_text" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="color" updates="constant" val="white" valType="str"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="pos" updates="constant" val="(0, 0)" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="text" updates="constant" val="$instruc_txt&amp;#10;" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.1" valType="code"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+      </TextComponent>
+      <KeyboardComponent name="scanner_resp">
+        <Param name="name" updates="None" val="scanner_resp" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="allowedKeys" updates="constant" val="'5'" valType="code"/>
+        <Param name="discard previous" updates="constant" val="True" valType="bool"/>
+        <Param name="store" updates="constant" val="last key" valType="str"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="storeCorrect" updates="constant" val="False" valType="bool"/>
+        <Param name="correctAns" updates="constant" val="" valType="str"/>
+        <Param name="syncScreenRefresh" updates="constant" val="True" valType="bool"/>
+      </KeyboardComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="instructions"/>
+    <LoopInitiator loopType="TrialHandler" name="trials">
+      <Param name="name" updates="None" val="trials" valType="code"/>
+      <Param name="nReps" updates="None" val="30" valType="code"/>
+      <Param name="conditions" updates="None" val="None" valType="str"/>
+      <Param name="conditionsFile" updates="None" val="" valType="str"/>
+      <Param name="endPoints" updates="None" val="[0, 1]" valType="num"/>
+      <Param name="Selected rows" updates="None" val="" valType="str"/>
+      <Param name="loopType" updates="None" val="sequential" valType="str"/>
+      <Param name="random seed" updates="None" val="" valType="code"/>
+      <Param name="isTrials" updates="None" val="True" valType="bool"/>
+    </LoopInitiator>
+    <Routine name="trial"/>
+    <LoopTerminator name="trials"/>
+  </Flow>
+</PsychoPy2experiment>
