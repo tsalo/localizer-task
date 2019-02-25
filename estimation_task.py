@@ -17,12 +17,13 @@ import time
 from datetime import datetime
 
 import numpy as np
+import pandas as pd
 import psychopy
 import psychopy.core
 import psychopy.event
 import psychopy.gui
 import psychopy.visual
-
+from psychopy.constants import STARTED, FINISHED, STOPPED, NOT_STARTED
 psychopy.prefs.general['audioLib'] = ['sounddevice', 'pyo', 'pygame']
 psychopy.prefs.general['audioDevice'] = ['Built-in Output']
 
@@ -92,10 +93,14 @@ def draw(win, stim, duration):
     """
     # Use a busy loop instead of sleeping so we can exit early if need be.
     start_time = time.time()
+    response = psychopy.events.BuilderKeyResponse()
+    response.tStart = start_time
+    response.frameNStart = 0
     while time.time() - start_time < duration:
         stim.draw()
         close_on_esc(win)
         win.flip()
+
 
 
 class Checkerboard(object):
@@ -143,7 +148,10 @@ if __name__ == '__main__':
     window = psychopy.visual.Window(
         size=(800, 600), fullscr=False, monitor='testMonitor', units='deg',
     )
-
+    exp_info = {'subject':'', 'session':''}
+    dlg = psychopy.gui.DlgFromDict(exp_info, title='Primary Estimation', order=['subject', 'session'])
+    if not dlg.OK:
+        psychopy.core.quit()
     # Initialize stimuli
     # ------------------
     instructions = psychopy.visual.TextStim(window, _INSTRUCTIONS, height=2)
@@ -183,7 +191,16 @@ if __name__ == '__main__':
         np.random.shuffle(trials)
 
         c = 0  # tone trial counter
-        for trial_type in trials:
+        trial_dict = {1: 'Checkerboard', 2: 'Tone', 3: 'Tapping'}
+        tap_response = psychopy.event.BuilderKeyResponse()
+        for trial_num, trial_type in enumerate(trials):
+            trials_clock.reset()
+            data_set['trial_number'].append(trial_num)
+            data_set['onset_time'].append(routine_clock.getTime())
+            data_set['trial_type'].append(trial_dict[trial_type])
+            keys = []
+            tap_response.status = NOT_STARTED
+            frameN = -1
             if trial_type == 1:
                 # flashing checkerboard
                 flash_stimuli(window, checkerboards, duration=trial_duration,
@@ -198,12 +215,20 @@ if __name__ == '__main__':
             elif trial_type == 3:
                 # finger tapping
                 draw(win=window, stim=tapping, duration=trial_duration)
+                tapping_response(duration=trial_duration)
             else:
                 raise Exception()
-
+            if keys:
+                data_set['tap_duration'].append(keys[-1][1] - keys[0][1])
+                data_set['reaction_time'].append(keys[0][1])
+                print(keys)
+            elif not keys:
+                data_set['tap_duration'].append(np.nan)
+                data_set['reaction_time'].append(np.nan)
+            data_set['duration'].append(routine_clock.getTime() - data_set['onset_time'][-1])
             # Rest
             draw(win=window, stim=crosshair, duration=rest_duration)
-
+            psychopy.logging.flush()
     # Scanner runtime
     # ---------------
     # Wait for trigger from scanner.
@@ -212,9 +237,14 @@ if __name__ == '__main__':
     psychopy.event.waitKeys(keyList=['num_add', 'plus', '+', 'space'])
 
     startTime = datetime.now()
-
+    routine_clock = psychopy.core.Clock()
+    trials_clock = psychopy.core.Clock()
+    data_set = {'trial_number':[], 'tap_duration':[], 'onset_time':[], 'trial_type':[], 'duration':[], 'reaction_time':[]}
+    log_file = psychopy.logging.LogFile('sub-{0}_ses-{1}_task-primaryEstimation_run-01_events.log'.format(exp_info['subject'], exp_info['session']))
+    psychopy.logging.console.setLevel(psychopy.logging.WARNING)
     run_trials(1, 15, 18)
-
+    out_frame = pd.DataFrame(data_set)
+    out_frame.to_csv('sub-{0}_ses-{1}_task-primaryEstimation_run-01_events.tsv'.format(exp_info['subject'], exp_info['session']),
+                     sep='\t')
     window.close()
-    print(datetime.now() - startTime)
     psychopy.core.quit()
