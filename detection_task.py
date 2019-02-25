@@ -1,34 +1,31 @@
 """
-Block design for M1, V1, and A1 BOLD response detection (i.e., a functional
-localizer).
+Slow event-related design for HRF estimation for M1, V1, and A1.
 
-Single-run task that alternates blocks of rest with blocks of the following
-conditions:
+Single-run task that includes the following conditions:
 - flashing checkerboard
 - finger tapping
-- listening to tones
+- listening to tones/music
 
 Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
 
 from __future__ import division, print_function
-
-import glob
-import os
 import time
+import os
 from datetime import datetime
-
 import numpy as np
-import psychopy
-import psychopy.core
-import psychopy.event
-import psychopy.gui
-import psychopy.visual
-
+import pandas as pd
+import psychopy #pylint: disable=E0401
+import psychopy.core #pylint: disable=E0401
+import psychopy.event #pylint: disable=E0401
+import psychopy.gui #pylint: disable=E0401
+import psychopy.visual #pylint: disable=E0401
+import psychopy.sound #pylint: disable=E0401
+from psychopy.constants import STARTED, STOPPED #pylint: disable=E0401
 psychopy.prefs.general['audioLib'] = ['sounddevice', 'pyo', 'pygame']
 psychopy.prefs.general['audioDevice'] = ['Built-in Output']
 
-import psychopy.sound
+
 
 _TAPPING_INSTRUCTIONS = 'Tap your fingers as quickly as possible!'
 
@@ -49,6 +46,9 @@ tap your fingers of both hands as fast as you can."""
 
 
 def close_on_esc(win):
+    """
+    Closes window if escape is pressed
+    """
     if 'escape' in psychopy.event.getKeys():
         win.close()
         psychopy.core.quit()
@@ -65,19 +65,30 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
     duration : (numeric) duration of flashing in seconds
     frequency : (numeric) frequency of flashing in Hertz
     """
-    start = time.time()
+    start_time = time.time()
     duration_one_display = 1 / frequency
     n_stim = len(stimuli)
     counter = 0
-
-    while time.time() - start < duration:
+    response = psychopy.event.BuilderKeyResponse()
+    response.tStart = start_time
+    response.frameNStart = 0
+    response.status = STARTED
+    window.callOnFlip(response.clock.reset)
+    psychopy.event.clearEvents(eventType='keyboard')
+    while time.time() - start_time < duration:
+        keys = psychopy.event.getKeys(keyList=['1', '2', '3', '4'], timeStamped=trials_clock)
+        if keys:
+            response.keys.extend(keys)
+            response.rt.append(response.clock.getTime())
         _this_start = time.time()
         while time.time() - _this_start < duration_one_display:
             this_stim = stimuli[counter % n_stim]
             this_stim.draw()
+            keys = psychopy.event.getKeys()
             win.flip()
-            if time.time() - start >= duration:
-                return
+            if time.time() - start_time >= duration:
+                response.status = STOPPED
+                return response.keys, response.rt
             close_on_esc(win)
         counter += 1
 
@@ -94,10 +105,23 @@ def draw(win, stim, duration):
     """
     # Use a busy loop instead of sleeping so we can exit early if need be.
     start_time = time.time()
+    response = psychopy.event.BuilderKeyResponse()
+    response.tStart = start_time
+    response.frameNStart = 0
+    response.status = STARTED
+    window.callOnFlip(response.clock.reset)
+    psychopy.event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
         stim.draw()
+        keys = psychopy.event.getKeys(keyList=['1', '2', '3', '4'], timeStamped=trials_clock)
+        if keys:
+            response.keys.extend(keys)
+            response.rt.append(response.clock.getTime())
         close_on_esc(win)
         win.flip()
+    response.status = STOPPED
+    return response.keys, response.rt
+
 
 
 class Checkerboard(object):
@@ -145,7 +169,10 @@ if __name__ == '__main__':
     window = psychopy.visual.Window(
         size=(800, 600), fullscr=False, monitor='testMonitor', units='deg',
     )
-
+    exp_info = {'subject':'', 'session':''}
+    dlg = psychopy.gui.DlgFromDict(exp_info, title='Primary Estimation', order=['subject', 'session'])
+    if not dlg.OK:
+        psychopy.core.quit()
     # Initialize stimuli
     # ------------------
     instructions = psychopy.visual.TextStim(window, _INSTRUCTIONS, height=2)
@@ -153,60 +180,98 @@ if __name__ == '__main__':
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
     # Music (with finger tapping)
     tones = [psychopy.sound.Sound(tf) for tf in _TONE_FILES]
+    tone_nums = np.arange(len(tones))
+    tone_nums = np.repeat(tone_nums, 5)  # just assume 25 trials for now
+    np.random.shuffle(tone_nums) #pylint: disable=E1101
     # Finger tapping instructions
     tapping = psychopy.visual.TextStim(window, _TAPPING_INSTRUCTIONS, height=2,
                                        wrapWidth=30)
+    tone = psychopy.visual.TextStim(window, '', height=2,
+                                    wrapWidth=30)
     # Rest between tasks
     crosshair = psychopy.visual.TextStim(window, '+', height=2)
     # Waiting for scanner
     waiting = psychopy.visual.TextStim(window, "Waiting for scanner ...")
-    def run_trials(block_duration=16, n_blocks=5):
+
+    def run_trials(trial_duration=1, rest_duration=15, n_blocks=5):
         """Run alternating trials.
 
-        (16 * 6) * 5 = 480 (8 minutes, plus 5 seconds for initial rest)
+        (15 + 1) * (10 * 3) = 480 (8 minutes, plus 5 seconds for initial rest)
 
         Parameters
         ----------
-        block_duration : (numeric) duration in seconds of each block of trials
+        trial_duration : (numeric) duration in seconds of each block of trials
         """
         # Rest
         draw(win=window, stim=crosshair, duration=5)
 
-        for i in range(n_blocks):
-            # Checkerboards
-            flash_stimuli(window, checkerboards, duration=block_duration,
-                          frequency=5)
+        trials = [1, 2, 3] * n_blocks
+        # randomize order
+
+        c = 0  # tone trial counter
+        trial_dict = {1: 'Checkerboard', 2: 'Tone', 3: 'Tapping'}
+        for trial_num, trial_type in enumerate(trials):
+            trials_clock.reset()
+            data_set['trial_number'].append(trial_num)
+            data_set['onset_time'].append(routine_clock.getTime())
+            data_set['trial_type'].append(trial_dict[trial_type])
+            task_keys = []
+            rest_keys = []
+            if trial_type == 1:
+                # flashing checkerboard
+                task_keys, _ = flash_stimuli(window, checkerboards, duration=trial_duration,
+                                             frequency=5)
+            elif trial_type == 2:
+                # tone
+                tone_num = tone_nums[c]
+                tones[tone_num].play()
+                draw(win=window, stim=tone, duration=trial_duration)
+                tones[tone_num].stop()
+                c += 1
+            elif trial_type == 3:
+                # finger tapping
+                task_keys, _ = draw(win=window, stim=tapping, duration=trial_duration)
+            else:
+                raise Exception()
 
             # Rest
-            draw(win=window, stim=crosshair, duration=block_duration)
-
-            # Tone
-            tones[i].play()
-            psychopy.core.wait(block_duration)
-            tones[i].stop()
-
-            # Rest
-            draw(win=window, stim=crosshair, duration=block_duration)
-
-            # Finger tapping
-            draw(win=window, stim=tapping, duration=block_duration)
-            tap_key_press = psychopy.event.getKeys(timeStamped=True)
-
-            # Rest
-            draw(win=window, stim=crosshair, duration=block_duration)
-            print(tap_key_press)
-
+            rest_keys, _ = draw(win=window, stim=crosshair, duration=rest_duration)
+            if task_keys and rest_keys:
+                data_set['tap_duration'].append((trial_duration + rest_keys[-1][1]) - task_keys[0][1])
+                data_set['reaction_time'].append(task_keys[0][1])
+            elif task_keys and not rest_keys:
+                data_set['reaction_time'].append(task_keys[0][1])
+                data_set['tap_duration'].append(task_keys[-1][1] - task_keys[0][1])
+            elif rest_keys and not task_keys:
+                data_set['reaction_time'].append(trial_duration + rest_keys[0][1])
+                data_set['tap_duration'].append(rest_keys[-1][1] - rest_keys[0][1])
+            else:
+                data_set['reaction_time'].append(np.nan)
+                data_set['tap_duration'].append(np.nan)
+            data_set['tap_frequency'].append((len(task_keys) + len(rest_keys)))
+            data_set['duration'].append(routine_clock.getTime() - data_set['onset_time'][-1])
+            psychopy.logging.flush()
     # Scanner runtime
     # ---------------
     # Wait for trigger from scanner.
     waiting.draw()
     window.flip()
-    psychopy.event.waitKeys(keyList=['num_add', 'plus', '+', 'space'])
+    psychopy.event.waitKeys(keyList=['num_add', 'plus', '+', 'space', '5'])
 
     startTime = datetime.now()
-
-    run_trials(16, 5)
-
+    routine_clock = psychopy.core.Clock()
+    trials_clock = psychopy.core.Clock()
+    data_set = {'trial_number':[], 'tap_duration':[], 'onset_time':[],
+                'trial_type':[], 'duration':[], 'reaction_time':[], 'tap_frequency': []}
+    filename = 'data/sub-{0}_ses-{1}_task-primaryEstimation_run-01_events'.format(exp_info['subject'],
+                                                                                  exp_info['session'])
+    if not os.path.isdir('data'):
+        os.makedirs('data')
+    log_file = psychopy.logging.LogFile(filename + '.log', level=psychopy.logging.EXP)
+    psychopy.logging.console.setLevel(psychopy.logging.DATA)
+    run_trials(1, 15, 18)
+    print(data_set)
+    out_frame = pd.DataFrame(data_set)
+    out_frame.to_csv(filename + '.tsv', sep='\t')
     window.close()
-    print(datetime.now() - startTime)
     psychopy.core.quit()
