@@ -297,7 +297,7 @@ if __name__ == '__main__':
     routine_clock = psychopy.core.Clock()
     trials_clock = psychopy.core.Clock()
     data_set = {'trial_number':[], 'tap_duration':[], 'onset_time':[],
-                'trial_type':[], 'duration':[], 'reaction_time':[], 'tap_count': []}
+                'trial_type':[], 'trial_duration':[], 'reaction_time':[], 'tap_count': []}
     filename = 'data/sub-{0}_ses-{1}_task-primary{2}_run-01_events'.format(exp_info['subject'],
                                                                            exp_info['session'],
                                                                            exp_info['type'])
