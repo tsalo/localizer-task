@@ -22,8 +22,8 @@ import psychopy.gui #pylint: disable=E0401
 import psychopy.visual #pylint: disable=E0401
 import psychopy.sound #pylint: disable=E0401
 from psychopy.constants import STARTED, STOPPED #pylint: disable=E0401
-psychopy.prefs.general['audioLib'] = ['sounddevice', 'pyo', 'pygame']
-psychopy.prefs.general['audioDevice'] = ['Built-in Output']
+psychopy.prefs.general['audioLib'] = ['sounddevice', 'pygame']
+#psychopy.prefs.general['audioDevice'] = ['Built-in Output']
 
 
 
@@ -233,7 +233,7 @@ if __name__ == '__main__':
 
         #assert n_trials % 3 == 0, 'N. trials must be divisible by N. conds (3)'
         #n_cond_trials = int(n_trials / 3)  # n_trials must be divisible by 3
-        trials = range(1, n_conds + 1)
+        trials = list(range(1, n_conds + 1))
         trials *= n_trials
         # randomize order
         if type =='estimation':
