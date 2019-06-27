@@ -22,8 +22,8 @@ import psychopy.gui #pylint: disable=E0401
 import psychopy.visual #pylint: disable=E0401
 import psychopy.sound #pylint: disable=E0401
 from psychopy.constants import STARTED, STOPPED #pylint: disable=E0401
-psychopy.prefs.general['audioLib'] = ['sounddevice', 'pyo', 'pygame']
-psychopy.prefs.general['audioDevice'] = ['Built-in Output']
+psychopy.prefs.general['audioLib'] = ['sounddevice', 'pygame']
+#psychopy.prefs.general['audioDevice'] = ['Built-in Output']
 
 
 
@@ -161,6 +161,30 @@ class Checkerboard(object):
         """Draw checkerboard object."""
         self._stim.draw()
 
+def trial_duration_and_iti(dur_range=(1, 2), iti_range=(1, 2), n_trials=12, n_conds=3, seed=None):
+    """
+    Produces lists containing n_conds arrays of n_trials length for trial durations and intertrial
+    intervals based on a uniform distribution. The process is iterative to minimize the amount
+    of duration lost
+    """
+    length = (np.average(dur_range) + np.average(iti_range)) \
+             * n_trials
+    missing_time = np.finfo(dtype='float64').max
+    if seed:
+        seed *= 1000  # allows for space to change
+    else:
+        seed = np.random.randint(1000, 9999)
+
+    while not np.isclose(missing_time, 0.0, atol=.001):
+        state = np.random.RandomState()
+        trial_durs = state.uniform(dur_range[0], dur_range[1], n_trials)
+        trial_itis = state.uniform(iti_range[0], iti_range[1], n_trials)
+        missing_time = length - np.sum(trial_durs + trial_itis)
+        seed += 1
+
+    all_cond_trial_durs = [np.random.permutation(trial_durs) for _ in range(n_conds)]
+    all_cond_trial_itis = [np.random.permutation(trial_itis) for _ in range(n_conds)]
+    return all_cond_trial_durs, all_cond_trial_itis
 
 if __name__ == '__main__':
     # Collect user input
@@ -169,12 +193,14 @@ if __name__ == '__main__':
     window = psychopy.visual.Window(
         size=(800, 600), fullscr=False, monitor='testMonitor', units='deg',
     )
-    exp_info = {'subject':'', 'session':''}
-    dlg = psychopy.gui.DlgFromDict(exp_info, title='Primary Estimation', order=['subject', 'session'])
+    exp_info = {'subject':'', 'session':'', 'type':'estimation'}
+    dlg = psychopy.gui.DlgFromDict(exp_info, title='Primary {0}'.format(exp_info['type']), order=['subject', 'session'])
     if not dlg.OK:
         psychopy.core.quit()
     # Initialize stimuli
     # ------------------
+    durs, itis = trial_duration_and_iti(dur_range=(1, 5), iti_range=(3, 10),
+                                        n_trials=10, n_conds=3)
     instructions = psychopy.visual.TextStim(window, _INSTRUCTIONS, height=2)
     # Checkerboards (with finger tapping)
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
@@ -193,7 +219,7 @@ if __name__ == '__main__':
     # Waiting for scanner
     waiting = psychopy.visual.TextStim(window, "Waiting for scanner ...")
 
-    def run_trials(trial_duration=1, rest_duration=15, n_blocks=5):
+    def run_trials(trial_duration=1, rest_duration=15, n_trials=10, n_conds=3, type=exp_info['type']):
         """Run alternating trials.
 
         (15 + 1) * (10 * 3) = 480 (8 minutes, plus 5 seconds for initial rest)
@@ -205,18 +231,27 @@ if __name__ == '__main__':
         # Rest
         draw(win=window, stim=crosshair, duration=5)
 
-        trials = [1, 2, 3] * n_blocks
+        #assert n_trials % 3 == 0, 'N. trials must be divisible by N. conds (3)'
+        #n_cond_trials = int(n_trials / 3)  # n_trials must be divisible by 3
+        trials = list(range(1, n_conds + 1))
+        trials *= n_trials
         # randomize order
+        if type =='estimation':
+            np.random.shuffle(trials) #pylint: disable=E1101
 
         c = 0  # tone trial counter
         trial_dict = {1: 'Checkerboard', 2: 'Tone', 3: 'Tapping'}
+        trial_type_num  = {1: 0, 2: 0, 3: 0}
         for trial_num, trial_type in enumerate(trials):
             trials_clock.reset()
-            data_set['trial_number'].append(trial_num)
+            data_set['trial_number'].append(trial_num + 1)
             data_set['onset_time'].append(routine_clock.getTime())
             data_set['trial_type'].append(trial_dict[trial_type])
             task_keys = []
             rest_keys = []
+            trial_duration = durs[trial_type - 1][trial_type_num[trial_type]]
+            rest_duration = itis[trial_type - 1][trial_type_num[trial_type]]
+            trial_type_num[trial_type] += 1
             if trial_type == 1:
                 # flashing checkerboard
                 task_keys, _ = flash_stimuli(window, checkerboards, duration=trial_duration,
@@ -225,7 +260,7 @@ if __name__ == '__main__':
                 # tone
                 tone_num = tone_nums[c]
                 tones[tone_num].play()
-                draw(win=window, stim=tone, duration=trial_duration)
+                draw(win=window, stim=crosshair, duration=trial_duration)
                 tones[tone_num].stop()
                 c += 1
             elif trial_type == 3:
@@ -248,8 +283,8 @@ if __name__ == '__main__':
             else:
                 data_set['reaction_time'].append(np.nan)
                 data_set['tap_duration'].append(np.nan)
-            data_set['tap_frequency'].append((len(task_keys) + len(rest_keys)))
-            data_set['duration'].append(routine_clock.getTime() - data_set['onset_time'][-1])
+            data_set['tap_count'].append((len(task_keys) + len(rest_keys)))
+            data_set['trial_duration'].append(routine_clock.getTime() - data_set['onset_time'][-1])
             psychopy.logging.flush()
     # Scanner runtime
     # ---------------
@@ -262,16 +297,17 @@ if __name__ == '__main__':
     routine_clock = psychopy.core.Clock()
     trials_clock = psychopy.core.Clock()
     data_set = {'trial_number':[], 'tap_duration':[], 'onset_time':[],
-                'trial_type':[], 'duration':[], 'reaction_time':[], 'tap_frequency': []}
-    filename = 'data/sub-{0}_ses-{1}_task-primaryEstimation_run-01_events'.format(exp_info['subject'],
-                                                                                  exp_info['session'])
+                'trial_type':[], 'trial_duration':[], 'reaction_time':[], 'tap_count': []}
+    filename = 'data/sub-{0}_ses-{1}_task-primary{2}_run-01_events'.format(exp_info['subject'],
+                                                                           exp_info['session'],
+                                                                           exp_info['type'])
     if not os.path.isdir('data'):
         os.makedirs('data')
-    log_file = psychopy.logging.LogFile(filename + '.log', level=psychopy.logging.EXP)
+    log_file = psychopy.logging.LogFile(filename + '.log', level=psychopy.logging.WARNING)
     psychopy.logging.console.setLevel(psychopy.logging.DATA)
-    run_trials(1, 15, 18)
+    run_trials(1, 15, 10, 3)
     print(data_set)
     out_frame = pd.DataFrame(data_set)
-    out_frame.to_csv(filename + '.tsv', sep='\t')
+    out_frame.to_csv(filename + '.tsv', sep='\t', na_rep='n/a', index=False)
     window.close()
     psychopy.core.quit()
