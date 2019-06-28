@@ -38,6 +38,7 @@ _TONE_FILES = ['audio/250Hz_20s.wav',
                'audio/750Hz_20s.wav',
                'audio/850Hz_20s.wav']
 N_CONDS = 3
+N_BLOCKS = 2
 N_TRIALS = 14
 DUR_RANGE = (1, 5)
 ITI_RANGE = (3, 11.84)
@@ -75,21 +76,25 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
     window.callOnFlip(response.clock.reset)
     psychopy.event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
-        keys = psychopy.event.getKeys(keyList=['1', '2', '3', '4'], timeStamped=trials_clock)
+        keys = psychopy.event.getKeys(keyList=['1', '2'], timeStamped=trials_clock)
         if keys:
             response.keys.extend(keys)
             response.rt.append(response.clock.getTime())
         _this_start = time.time()
         while time.time() - _this_start < duration_one_display:
             this_stim = stimuli[counter % n_stim]
-            this_stim.draw()
-            keys = psychopy.event.getKeys()
             win.flip()
-            if time.time() - start_time >= duration:
-                response.status = STOPPED
-                return response.keys, response.rt
+            keys = psychopy.event.getKeys(keyList=['1', '2'], timeStamped=trials_clock)
+            if keys:
+                response.keys.extend(keys)
+                response.rt.append(response.clock.getTime())
+            this_stim.draw()
+            
             close_on_esc(win)
         counter += 1
+    response.status = STOPPED
+    return response.keys, response.rt
+    
 
 
 def draw(win, stim, duration):
@@ -112,7 +117,7 @@ def draw(win, stim, duration):
     psychopy.event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
         stim.draw()
-        keys = psychopy.event.getKeys(keyList=['1', '2', '3', '4'], timeStamped=trials_clock)
+        keys = psychopy.event.getKeys(keyList=['1', '2'], timeStamped=trials_clock)
         if keys:
             response.keys.extend(keys)
             response.rt.append(response.clock.getTime())
@@ -202,22 +207,18 @@ if __name__ == '__main__':
     # Collect user input
     # ------------------
     # Remember to turn fullscr to True for the real deal.
-    window = psychopy.visual.Window(
-        size=(800, 600), fullscr=False, monitor='testMonitor', units='deg',
-    )
+
     exp_info = {'subject': '',
                 'session': '',
-                'ttype': 'estimation'}
+                'ttype': ['Estimation', 'Detection']}
     dlg = psychopy.gui.DlgFromDict(
         exp_info,
         title='Primary {0}'.format(exp_info['ttype']),
         order=['subject', 'session'])
+    window = psychopy.visual.Window(
+        size=(800, 600), fullscr=True, monitor='testMonitor', units='deg',)
     if not dlg.OK:
         psychopy.core.quit()
-
-    # run trials
-    if exp_info['ttype'] not in ['estimation', 'detection']:
-        raise ValueError('ttype must be estimation or detection.')
 
     filename = ('data/sub-{0}_ses-{1}_task-primary{2}'
                 '_run-01_events').format(exp_info['subject'],
@@ -253,14 +254,16 @@ if __name__ == '__main__':
     # Wait for trigger from scanner.
     waiting.draw()
     window.flip()
-    psychopy.event.waitKeys(keyList=['num_add', 'plus', '+', 'space', '5'])
+    psychopy.event.waitKeys(keyList=['space', '5'])
 
     startTime = datetime.now()
     routine_clock = psychopy.core.Clock()
     trials_clock = psychopy.core.Clock()
-    data_set = {'trial_number': [], 'tap_duration': [], 'onset_time': [],
-                'trial_type': [], 'trial_duration': [], 'reaction_time': [],
-                'tap_count': []}
+    COLUMNS = ['trial_number', 'onset', 'duration', 'trial_type', 
+               'response_time', 'tap_count', 'tap_duration', 'stim_file']
+    data_set = {'trial_number': [], 'onset': [], 'duration': [],
+                'trial_type': [], 'response_time': [],
+                'tap_count': [], 'tap_duration': [], 'stim_file':[]}
     if not os.path.isdir('data'):
         os.makedirs('data')
     log_file = psychopy.logging.LogFile(filename + '.log',
@@ -271,18 +274,30 @@ if __name__ == '__main__':
     draw(win=window, stim=crosshair, duration=6)
 
     trial_dict = {1: 'Checkerboard', 2: 'Tone', 3: 'Tapping'}
-    trials = list(range(1, N_CONDS + 1))
-    trials *= N_TRIALS
-    # randomize order
-    if exp_info['ttype'] == 'estimation':
+    # set order of trials
+    if exp_info['ttype'] == 'Estimation':
+        # randomize order
+        trials = list(range(1, N_CONDS + 1))
+        trials *= N_TRIALS
         np.random.shuffle(trials)  # pylint: disable=E1101
+    elif exp_info['ttype'] == 'Detection':
+        # temporary requirement that trials divide evenly into block
+        assert N_TRIALS % N_BLOCKS == 0
+        N_TRIALS_PER_BLOCK = N_TRIALS // N_BLOCKS
+
+        # shuffle order of conditions (but repeated in same order across blocks)
+        cond_list = list(range(1, N_CONDS + 1))
+        np.random.shuffle(cond_list)
+        trials = [[N_TRIALS_PER_BLOCK * [i] for i in cond_list] for _ in range(N_BLOCKS)]
+        trials = [item for sublist in trials for item in sublist]
+        trials = [item for sublist in trials for item in sublist]
 
     c = 0  # tone trial counter
     trial_type_num = {1: 0, 2: 0, 3: 0}  # trial type counter
     for trial_num, trial_type in enumerate(trials):
         trials_clock.reset()
         data_set['trial_number'].append(trial_num + 1)
-        data_set['onset_time'].append(routine_clock.getTime())
+        data_set['onset'].append(routine_clock.getTime())
         data_set['trial_type'].append(trial_dict[trial_type])
         task_keys = []
         rest_keys = []
@@ -293,16 +308,19 @@ if __name__ == '__main__':
             # flashing checkerboard
             task_keys, _ = flash_stimuli(window, checkerboards,
                                          duration=trial_duration, frequency=5)
+            data_set['stim_file'].append('n/a')
         elif trial_type == 2:
             # tone
             tone_num = tone_nums[c]
             tones[tone_num].play()
-            draw(win=window, stim=crosshair, duration=trial_duration)
+            task_keys, _ = draw(win=window, stim=crosshair, duration=trial_duration)
             tones[tone_num].stop()
             c += 1
+            data_set['stim_file'].append(_TONE_FILES[tone_num])
         elif trial_type == 3:
             # finger tapping
             task_keys, _ = draw(win=window, stim=tapping, duration=trial_duration)
+            data_set['stim_file'].append('n/a')
         else:
             raise Exception()
 
@@ -310,25 +328,26 @@ if __name__ == '__main__':
         rest_keys, _ = draw(win=window, stim=crosshair, duration=rest_duration)
         if task_keys and rest_keys:
             data_set['tap_duration'].append((trial_duration + rest_keys[-1][1]) - task_keys[0][1])
-            data_set['reaction_time'].append(task_keys[0][1])
+            data_set['response_time'].append(task_keys[0][1])
         elif task_keys and not rest_keys:
-            data_set['reaction_time'].append(task_keys[0][1])
+            data_set['response_time'].append(task_keys[0][1])
             data_set['tap_duration'].append(task_keys[-1][1] - task_keys[0][1])
         elif rest_keys and not task_keys:
-            data_set['reaction_time'].append(trial_duration + rest_keys[0][1])
+            data_set['response_time'].append(trial_duration + rest_keys[0][1])
             data_set['tap_duration'].append(rest_keys[-1][1] - rest_keys[0][1])
         else:
-            data_set['reaction_time'].append(np.nan)
+            data_set['response_time'].append(np.nan)
             data_set['tap_duration'].append(np.nan)
         data_set['tap_count'].append((len(task_keys) + len(rest_keys)))
-        data_set['trial_duration'].append(routine_clock.getTime() - data_set['onset_time'][-1])
+        print(task_keys, rest_keys)
+        data_set['duration'].append(routine_clock.getTime() - data_set['onset'][-1])
         psychopy.logging.flush()
 
     # End with six seconds of rest
     draw(win=window, stim=crosshair, duration=6)
 
     # finish running trials
-    out_frame = pd.DataFrame(data_set)
+    out_frame = pd.DataFrame(data_set, columns=COLUMNS)
     out_frame.to_csv(filename + '.tsv', sep='\t', na_rep='n/a', index=False)
     window.close()
     psychopy.core.quit()
