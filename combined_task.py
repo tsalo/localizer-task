@@ -26,7 +26,6 @@ from psychopy.constants import STARTED, STOPPED  # pylint: disable=E0401
 psychopy.prefs.general['audioLib'] = ['sounddevice', 'pygame']
 # psychopy.prefs.general['audioDevice'] = ['Built-in Output']
 
-
 _TAPPING_INSTRUCTIONS = 'Tap your fingers as quickly as possible!'
 
 # These tracks are 20 seconds long.
@@ -39,15 +38,10 @@ _TONE_FILES = ['audio/250Hz_20s.wav',
                'audio/750Hz_20s.wav',
                'audio/850Hz_20s.wav']
 N_CONDS = 3
-N_TRIALS = 16
+N_TRIALS = 14
 DUR_RANGE = (1, 5)
-ITI_RANGE = (3, 10)
-TOTAL_TIME = 445
-
-_INSTRUCTIONS = """Watch the screen. A flashing checkerboard will be shown \
-and music will be played at various times. Please pay attention to both \
-stimuli. Whenever there is a checkerboard on the screen or music is playing, \
-tap your fingers of both hands as fast as you can."""
+ITI_RANGE = (3, 11.84)
+TOTAL_TIME = 438
 
 
 def close_on_esc(win):
@@ -175,20 +169,28 @@ def trial_duration_and_iti(dur_range, iti_range, n_trials, n_conds, seed=None):
     length = (np.average(dur_range) + np.average(iti_range)) * n_trials
     print('Total desired time: {0}s'.format(TOTAL_TIME))
     print('Total requested time: {0}s'.format(length * n_conds))
-    if np.abs(length - TOTAL_TIME) > 10:
+    if np.abs((length * n_conds) - TOTAL_TIME) > 10:
         raise Exception('Inputs do not seem compatible with total desired time.')
-    missing_time = np.finfo(dtype='float64').max
+    missing_time_per_cond = np.finfo(dtype='float64').max
     if seed:
         seed *= 1000  # allows for space to change
     else:
         seed = np.random.randint(1000, 9999)
 
-    while not np.isclose(missing_time, 0.0, atol=.001):
+    while not np.isclose(missing_time_per_cond, 0.0, atol=.001):
         state = np.random.RandomState()
         trial_durs = state.uniform(dur_range[0], dur_range[1], n_trials)
         trial_itis = state.uniform(iti_range[0], iti_range[1], n_trials)
-        missing_time = TOTAL_TIME - np.sum(trial_durs + trial_itis)
+        missing_time_per_cond = length - np.sum(trial_durs + trial_itis)
         seed += 1
+
+    # Fill in one trial's ITI with missing time for constant total time
+    print('Current missing time: {0}s'.format(missing_time_per_cond))
+    print('Discrepancy: {0}s'.format(TOTAL_TIME - (length * n_conds)))
+    missing_time_per_cond += (TOTAL_TIME / n_conds) - length
+    total_missing_time = missing_time_per_cond * n_conds
+    print('Final missing time: {0}s'.format(total_missing_time))
+    trial_itis[-1] += missing_time_per_cond
 
     all_cond_trial_durs = [np.random.permutation(trial_durs) for _ in range(n_conds)]
     all_cond_trial_itis = [np.random.permutation(trial_itis) for _ in range(n_conds)]
@@ -230,7 +232,6 @@ if __name__ == '__main__':
     durs, itis = trial_duration_and_iti(dur_range=DUR_RANGE, iti_range=ITI_RANGE,
                                         n_trials=N_TRIALS, n_conds=N_CONDS)
     print('done')
-    instructions = psychopy.visual.TextStim(window, _INSTRUCTIONS, height=2)
     # Checkerboards
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
     # Tones
@@ -263,12 +264,11 @@ if __name__ == '__main__':
     if not os.path.isdir('data'):
         os.makedirs('data')
     log_file = psychopy.logging.LogFile(filename + '.log',
-                                        level=psychopy.logging.WARNING)
+                                        level=psychopy.logging.DATA)
     psychopy.logging.console.setLevel(psychopy.logging.DATA)
 
-
-    # Start with five seconds of rest
-    draw(win=window, stim=crosshair, duration=5)
+    # Start with six seconds of rest
+    draw(win=window, stim=crosshair, duration=6)
 
     trial_dict = {1: 'Checkerboard', 2: 'Tone', 3: 'Tapping'}
     trials = list(range(1, N_CONDS + 1))
@@ -323,6 +323,9 @@ if __name__ == '__main__':
         data_set['tap_count'].append((len(task_keys) + len(rest_keys)))
         data_set['trial_duration'].append(routine_clock.getTime() - data_set['onset_time'][-1])
         psychopy.logging.flush()
+
+    # End with six seconds of rest
+    draw(win=window, stim=crosshair, duration=6)
 
     # finish running trials
     out_frame = pd.DataFrame(data_set)
