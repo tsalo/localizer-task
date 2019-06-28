@@ -224,7 +224,8 @@ if __name__ == '__main__':
         title='Primary {0}'.format(exp_info['ttype']),
         order=['subject', 'session'])
     window = psychopy.visual.Window(
-        size=(800, 600), fullscr=True, monitor='testMonitor', units='deg',)
+        size=(800, 600), fullscr=True, monitor='testMonitor', units='deg',
+        allowStencil=False, allowGUI=False)
     if not dlg.OK:
         psychopy.core.quit()
 
