@@ -37,12 +37,16 @@ _TONE_FILES = ['audio/250Hz_20s.wav',
                'audio/600Hz_20s.wav',
                'audio/750Hz_20s.wav',
                'audio/850Hz_20s.wav']
-N_CONDS = 3
-N_BLOCKS = 2
-N_TRIALS = 14
-DUR_RANGE = (1, 5)
-ITI_RANGE = (3, 11.84)
-TOTAL_TIME = 438
+TRIAL_DICT = {1: 'Checkerboard', 2: 'Tone', 3: 'Tapping'}
+N_CONDS = len(TRIAL_DICT.keys())  # audio, checkerboard, tapping
+N_BLOCKS = 2  # for detection task
+N_TRIALS = 14  # for each condition
+DUR_RANGE = (1, 5)  # avg of 3s
+ITI_RANGE = (3, 11.84)  # max determined to minimize difference from TASK_TIME
+TASK_TIME = 438  # time for trials in task
+START_DUR = 6  # fixation before trials
+END_DUR = 6  # fixation after trials
+# total time = TASK_TIME + START_DUR + END_DUR = 450 = 7.5 mins
 
 
 def close_on_esc(win):
@@ -76,7 +80,8 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
     window.callOnFlip(response.clock.reset)
     psychopy.event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
-        keys = psychopy.event.getKeys(keyList=['1', '2'], timeStamped=trials_clock)
+        keys = psychopy.event.getKeys(keyList=['1', '2'],
+                                      timeStamped=trials_clock)
         if keys:
             response.keys.extend(keys)
             response.rt.append(response.clock.getTime())
@@ -84,17 +89,17 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
         while time.time() - _this_start < duration_one_display:
             this_stim = stimuli[counter % n_stim]
             win.flip()
-            keys = psychopy.event.getKeys(keyList=['1', '2'], timeStamped=trials_clock)
+            keys = psychopy.event.getKeys(keyList=['1', '2'],
+                                          timeStamped=trials_clock)
             if keys:
                 response.keys.extend(keys)
                 response.rt.append(response.clock.getTime())
             this_stim.draw()
-            
+
             close_on_esc(win)
         counter += 1
     response.status = STOPPED
     return response.keys, response.rt
-    
 
 
 def draw(win, stim, duration):
@@ -117,7 +122,8 @@ def draw(win, stim, duration):
     psychopy.event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
         stim.draw()
-        keys = psychopy.event.getKeys(keyList=['1', '2'], timeStamped=trials_clock)
+        keys = psychopy.event.getKeys(keyList=['1', '2'],
+                                      timeStamped=trials_clock)
         if keys:
             response.keys.extend(keys)
             response.rt.append(response.clock.getTime())
@@ -172,10 +178,11 @@ def trial_duration_and_iti(dur_range, iti_range, n_trials, n_conds, seed=None):
     The process is iterative to minimize the amount of duration lost
     """
     length = (np.average(dur_range) + np.average(iti_range)) * n_trials
-    print('Total desired time: {0}s'.format(TOTAL_TIME))
+    print('Total desired time: {0}s'.format(TASK_TIME))
     print('Total requested time: {0}s'.format(length * n_conds))
-    if np.abs((length * n_conds) - TOTAL_TIME) > 10:
-        raise Exception('Inputs do not seem compatible with total desired time.')
+    if np.abs((length * n_conds) - TASK_TIME) > 10:
+        raise Exception('Inputs do not seem compatible with total desired '
+                        'time.')
     missing_time_per_cond = np.finfo(dtype='float64').max
     if seed:
         seed *= 1000  # allows for space to change
@@ -191,15 +198,16 @@ def trial_duration_and_iti(dur_range, iti_range, n_trials, n_conds, seed=None):
 
     # Fill in one trial's ITI with missing time for constant total time
     print('Current missing time: {0}s'.format(missing_time_per_cond))
-    print('Discrepancy: {0}s'.format(TOTAL_TIME - (length * n_conds)))
-    missing_time_per_cond += (TOTAL_TIME / n_conds) - length
+    print('Discrepancy: {0}s'.format(TASK_TIME - (length * n_conds)))
+    missing_time_per_cond += (TASK_TIME / n_conds) - length
     total_missing_time = missing_time_per_cond * n_conds
     print('Final missing time: {0}s'.format(total_missing_time))
     trial_itis[-1] += missing_time_per_cond
 
     all_cond_trial_durs = [np.random.permutation(trial_durs) for _ in range(n_conds)]
     all_cond_trial_itis = [np.random.permutation(trial_itis) for _ in range(n_conds)]
-    print('Total time: {0}s'.format(np.sum(all_cond_trial_durs) + np.sum(all_cond_trial_itis)))
+    print('Total time: {0}s'.format(np.sum(all_cond_trial_durs) +
+                                    np.sum(all_cond_trial_itis)))
     return all_cond_trial_durs, all_cond_trial_itis
 
 
@@ -229,10 +237,11 @@ if __name__ == '__main__':
 
     # Initialize stimuli
     # ------------------
-    print('determining durations and itis')
-    durs, itis = trial_duration_and_iti(dur_range=DUR_RANGE, iti_range=ITI_RANGE,
-                                        n_trials=N_TRIALS, n_conds=N_CONDS)
-    print('done')
+    print('Determining durations and ITIs')
+    durs, itis = trial_duration_and_iti(
+        dur_range=DUR_RANGE, iti_range=ITI_RANGE, n_trials=N_TRIALS,
+        n_conds=N_CONDS)
+    print('Done determination')
     # Checkerboards
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
     # Tones
@@ -259,11 +268,9 @@ if __name__ == '__main__':
     startTime = datetime.now()
     routine_clock = psychopy.core.Clock()
     trials_clock = psychopy.core.Clock()
-    COLUMNS = ['trial_number', 'onset', 'duration', 'trial_type', 
+    COLUMNS = ['trial_number', 'onset', 'duration', 'trial_type',
                'response_time', 'tap_count', 'tap_duration', 'stim_file']
-    data_set = {'trial_number': [], 'onset': [], 'duration': [],
-                'trial_type': [], 'response_time': [],
-                'tap_count': [], 'tap_duration': [], 'stim_file':[]}
+    data_set = {c: [] for c in COLUMNS}
     if not os.path.isdir('data'):
         os.makedirs('data')
     log_file = psychopy.logging.LogFile(filename + '.log',
@@ -271,9 +278,8 @@ if __name__ == '__main__':
     psychopy.logging.console.setLevel(psychopy.logging.DATA)
 
     # Start with six seconds of rest
-    draw(win=window, stim=crosshair, duration=6)
+    draw(win=window, stim=crosshair, duration=START_DUR)
 
-    trial_dict = {1: 'Checkerboard', 2: 'Tone', 3: 'Tapping'}
     # set order of trials
     if exp_info['ttype'] == 'Estimation':
         # randomize order
@@ -298,7 +304,7 @@ if __name__ == '__main__':
         trials_clock.reset()
         data_set['trial_number'].append(trial_num + 1)
         data_set['onset'].append(routine_clock.getTime())
-        data_set['trial_type'].append(trial_dict[trial_type])
+        data_set['trial_type'].append(TRIAL_DICT[trial_type])
         task_keys = []
         rest_keys = []
         trial_duration = durs[trial_type - 1][trial_type_num[trial_type]]
@@ -339,12 +345,11 @@ if __name__ == '__main__':
             data_set['response_time'].append(np.nan)
             data_set['tap_duration'].append(np.nan)
         data_set['tap_count'].append((len(task_keys) + len(rest_keys)))
-        print(task_keys, rest_keys)
         data_set['duration'].append(routine_clock.getTime() - data_set['onset'][-1])
         psychopy.logging.flush()
 
     # End with six seconds of rest
-    draw(win=window, stim=crosshair, duration=6)
+    draw(win=window, stim=crosshair, duration=END_DUR)
 
     # finish running trials
     out_frame = pd.DataFrame(data_set, columns=COLUMNS)
