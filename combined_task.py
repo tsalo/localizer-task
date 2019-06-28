@@ -237,11 +237,11 @@ if __name__ == '__main__':
 
     # Initialize stimuli
     # ------------------
-    print('determining durations and itis')
+    print('Determining durations and ITIs')
     durs, itis = trial_duration_and_iti(
         dur_range=DUR_RANGE, iti_range=ITI_RANGE, n_trials=N_TRIALS,
         n_conds=N_CONDS)
-    print('done')
+    print('Done determination')
     # Checkerboards
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
     # Tones
@@ -345,7 +345,6 @@ if __name__ == '__main__':
             data_set['response_time'].append(np.nan)
             data_set['tap_duration'].append(np.nan)
         data_set['tap_count'].append((len(task_keys) + len(rest_keys)))
-        print(task_keys, rest_keys)
         data_set['duration'].append(routine_clock.getTime() - data_set['onset'][-1])
         psychopy.logging.flush()
 
