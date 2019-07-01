@@ -39,7 +39,7 @@ _TONE_FILES = ['audio/250Hz_20s.wav',
                'audio/850Hz_20s.wav']
 TRIAL_DICT = {1: 'Checkerboard', 2: 'Tone', 3: 'Tapping'}
 N_CONDS = len(TRIAL_DICT.keys())  # audio, checkerboard, tapping
-N_BLOCKS = 2  # for detection task
+N_BLOCKS = 3  # for detection task
 N_TRIALS = 14  # for each condition
 DUR_RANGE = (1, 5)  # avg of 3s
 ITI_RANGE = (3, 11.84)  # max determined to minimize difference from TASK_TIME
@@ -288,14 +288,22 @@ if __name__ == '__main__':
         trials *= N_TRIALS
         np.random.shuffle(trials)  # pylint: disable=E1101
     elif exp_info['ttype'] == 'Detection':
-        # temporary requirement that trials divide evenly into block
-        assert N_TRIALS % N_BLOCKS == 0
-        N_TRIALS_PER_BLOCK = N_TRIALS // N_BLOCKS
-
+        N_TRIALS_PER_BLOCK = np.ceil(N_TRIALS // N_BLOCKS)
+        BLOCK_LIST = []
+        chop_flag = True
+        chop_num = N_TRIALS
+        while chop_flag:
+            BLOCK_LIST.append(N_TRIALS_PER_BLOCK)
+            chop_num -= N_TRIALS_PER_BLOCK
+            if chop_num < N_TRIALS_PER_BLOCK:
+                BLOCK_LIST.append(chop_num)
+                chop_flag = False
         # shuffle order of conditions (but repeated in same order across blocks)
         cond_list = list(range(1, N_CONDS + 1))
+        np.random.shuffle(BLOCK_LIST)
         np.random.shuffle(cond_list)
-        trials = [[N_TRIALS_PER_BLOCK * [i] for i in cond_list] for _ in range(N_BLOCKS)]
+        print(BLOCK_LIST, cond_list)
+        trials = [[[x] * y for x in cond_list] for y in BLOCK_LIST]
         trials = [item for sublist in trials for item in sublist]
         trials = [item for sublist in trials for item in sublist]
 
@@ -355,5 +363,8 @@ if __name__ == '__main__':
     # finish running trials
     out_frame = pd.DataFrame(data_set, columns=COLUMNS)
     out_frame.to_csv(filename + '.tsv', sep='\t', na_rep='n/a', index=False)
-    window.close()
-    psychopy.core.quit()
+
+    end_screen = psychopy.visual.TextStim(window, "The task is now complete!")
+    end_screen.draw()
+    window.flip()
+    psychopy.event.waitKeys(keyList=['space', '5', 'escape'])
