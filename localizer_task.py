@@ -37,7 +37,7 @@ _TONE_FILES = ['audio/250Hz_20s.wav',
                'audio/600Hz_20s.wav',
                'audio/750Hz_20s.wav',
                'audio/850Hz_20s.wav']
-TRIAL_DICT = {1: 'Checkerboard', 2: 'Tone', 3: 'Tapping'}
+TRIAL_DICT = {1: 'checkerboard', 2: 'tone', 3: 'fingertapping'}
 N_CONDS = len(TRIAL_DICT.keys())  # audio, checkerboard, tapping
 N_BLOCKS = 3  # for detection task
 N_TRIALS = 14  # for each condition
@@ -171,46 +171,6 @@ class Checkerboard(object):
         self._stim.draw()
 
 
-def trial_duration_and_iti(dur_range, iti_range, n_trials, n_conds, seed=None):
-    """
-    Produces lists containing n_conds arrays of n_trials length for trial
-    durations and intertrial intervals based on a uniform distribution.
-    The process is iterative to minimize the amount of duration lost
-    """
-    length = (np.average(dur_range) + np.average(iti_range)) * n_trials
-    print('Total desired time: {0}s'.format(TASK_TIME))
-    print('Total requested time: {0}s'.format(length * n_conds))
-    if np.abs((length * n_conds) - TASK_TIME) > 10:
-        raise Exception('Inputs do not seem compatible with total desired '
-                        'time.')
-    missing_time_per_cond = np.finfo(dtype='float64').max
-    if seed:
-        seed *= 1000  # allows for space to change
-    else:
-        seed = np.random.randint(1000, 9999)
-
-    while not np.isclose(missing_time_per_cond, 0.0, atol=.001):
-        state = np.random.RandomState()
-        trial_durs = state.uniform(dur_range[0], dur_range[1], n_trials)
-        trial_itis = state.uniform(iti_range[0], iti_range[1], n_trials)
-        missing_time_per_cond = length - np.sum(trial_durs + trial_itis)
-        seed += 1
-
-    # Fill in one trial's ITI with missing time for constant total time
-    print('Current missing time: {0}s'.format(missing_time_per_cond))
-    print('Discrepancy: {0}s'.format(TASK_TIME - (length * n_conds)))
-    missing_time_per_cond += (TASK_TIME / n_conds) - length
-    total_missing_time = missing_time_per_cond * n_conds
-    print('Final missing time: {0}s'.format(total_missing_time))
-    trial_itis[-1] += missing_time_per_cond
-
-    all_cond_trial_durs = [np.random.permutation(trial_durs) for _ in range(n_conds)]
-    all_cond_trial_itis = [np.random.permutation(trial_itis) for _ in range(n_conds)]
-    print('Total time: {0}s'.format(np.sum(all_cond_trial_durs) +
-                                    np.sum(all_cond_trial_itis)))
-    return all_cond_trial_durs, all_cond_trial_itis
-
-
 if __name__ == '__main__':
     # Collect user input
     # ------------------
@@ -230,26 +190,24 @@ if __name__ == '__main__':
         psychopy.core.quit()
 
     filename = ('data/sub-{0}_ses-{1}_task-primary{2}'
-                '_run-01_events').format(exp_info['subject'],
-                                         exp_info['session'],
+                '_run-01_events').format(exp_info['subject'].zfill(2),
+                                         exp_info['session'].zfill(2),
                                          exp_info['ttype'])
     if op.exists(filename + '.tsv'):
         raise ValueError('Output file already exists.')
 
     # Initialize stimuli
     # ------------------
-    print('Determining durations and ITIs')
-    durs, itis = trial_duration_and_iti(
-        dur_range=DUR_RANGE, iti_range=ITI_RANGE, n_trials=N_TRIALS,
-        n_conds=N_CONDS)
-    print('Done determination')
+    config_file = (
+        'config/sub-{0}_ses-{1}_task-primary{2}_run-01_config'
+        '.tsv'.format(exp_info['subject'].zfill(2),
+                      exp_info['session'].zfill(2),
+                      exp_info['ttype']))
+    config_df = pd.read_csv(config_file, sep='\t')
     # Checkerboards
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
     # Tones
     tones = [psychopy.sound.Sound(tf) for tf in _TONE_FILES]
-    tone_nums = np.arange(len(tones))
-    tone_nums = np.repeat(tone_nums, 5)  # just assume 25 trials for now
-    np.random.shuffle(tone_nums)  # pylint: disable=E1101
     tone = psychopy.visual.TextStim(window, '', height=2, wrapWidth=30)
     # Finger tapping instructions
     tapping = psychopy.visual.TextStim(window, _TAPPING_INSTRUCTIONS, height=2,
@@ -281,58 +239,32 @@ if __name__ == '__main__':
     # Start with six seconds of rest
     draw(win=window, stim=crosshair, duration=START_DUR)
 
-    # set order of trials
-    if exp_info['ttype'] == 'Estimation':
-        # randomize order
-        trials = list(range(1, N_CONDS + 1))
-        trials *= N_TRIALS
-        np.random.shuffle(trials)  # pylint: disable=E1101
-    elif exp_info['ttype'] == 'Detection':
-        N_TRIALS_PER_BLOCK = np.ceil(N_TRIALS // N_BLOCKS)
-        BLOCK_LIST = []
-        chop_flag = True
-        chop_num = N_TRIALS
-        while chop_flag:
-            BLOCK_LIST.append(N_TRIALS_PER_BLOCK)
-            chop_num -= N_TRIALS_PER_BLOCK
-            if chop_num < N_TRIALS_PER_BLOCK:
-                BLOCK_LIST.append(chop_num)
-                chop_flag = False
-        # shuffle order of conditions (but repeated in same order across blocks)
-        cond_list = list(range(1, N_CONDS + 1))
-        np.random.shuffle(BLOCK_LIST)
-        np.random.shuffle(cond_list)
-        print(BLOCK_LIST, cond_list)
-        trials = [[[x] * y for x in cond_list] for y in BLOCK_LIST]
-        trials = [item for sublist in trials for item in sublist]
-        trials = [item for sublist in trials for item in sublist]
-
-    c = 0  # tone trial counter
-    trial_type_num = {1: 0, 2: 0, 3: 0}  # trial type counter
-    for trial_num, trial_type in enumerate(trials):
+    c = 0  # trial counter
+    for trial_num in config_df.index:
         trials_clock.reset()
+        trial_type = config_df.loc[trial_num, 'trial_type']
+        trial_duration = config_df.loc[trial_num, 'duration']
+        rest_duration = config_df.loc[trial_num, 'iti']
         data_set['trial_number'].append(trial_num + 1)
         data_set['onset'].append(routine_clock.getTime())
-        data_set['trial_type'].append(TRIAL_DICT[trial_type])
+        data_set['trial_type'].append(trial_type)
         task_keys = []
         rest_keys = []
-        trial_duration = durs[trial_type - 1][trial_type_num[trial_type]]
-        rest_duration = itis[trial_type - 1][trial_type_num[trial_type]]
-        trial_type_num[trial_type] += 1
-        if trial_type == 1:
+        if trial_type == 'checkerboard':
             # flashing checkerboard
             task_keys, _ = flash_stimuli(window, checkerboards,
                                          duration=trial_duration, frequency=5)
             data_set['stim_file'].append('n/a')
-        elif trial_type == 2:
+        elif trial_type == 'tone':
+            stim_file = config_df.loc[trial_num, 'stimulus']
             # tone
-            tone_num = tone_nums[c]
+            tone_num = _TONE_FILES.index(stim_file)
             tones[tone_num].play()
             task_keys, _ = draw(win=window, stim=crosshair, duration=trial_duration)
             tones[tone_num].stop()
             c += 1
-            data_set['stim_file'].append(_TONE_FILES[tone_num])
-        elif trial_type == 3:
+            data_set['stim_file'].append(stim_file)
+        elif trial_type == 'fingertapping':
             # finger tapping
             task_keys, _ = draw(win=window, stim=tapping, duration=trial_duration)
             data_set['stim_file'].append('n/a')
@@ -354,7 +286,7 @@ if __name__ == '__main__':
             data_set['response_time'].append(np.nan)
             data_set['tap_duration'].append(np.nan)
         data_set['tap_count'].append((len(task_keys) + len(rest_keys)))
-        data_set['duration'].append(routine_clock.getTime() - data_set['onset'][-1])
+        data_set['duration'].append(trial_duration)
         psychopy.logging.flush()
 
     # End with six seconds of rest

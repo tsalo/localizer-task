@@ -10,15 +10,8 @@ Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
 
 from __future__ import division, print_function
-import time
-import os
-import os.path as op
-import json
-from datetime import datetime
 import numpy as np
 import pandas as pd
-
-_TAPPING_INSTRUCTIONS = 'Tap your fingers as quickly as possible!'
 
 # These tracks are 20 seconds long.
 # 10s versions created by
@@ -29,9 +22,9 @@ _TONE_FILES = ['audio/250Hz_20s.wav',
                'audio/600Hz_20s.wav',
                'audio/750Hz_20s.wav',
                'audio/850Hz_20s.wav']
-TRIAL_DICT = {1: 'Checkerboard', 2: 'Tone', 3: 'Tapping'}
+TRIAL_DICT = {1: 'checkerboard', 2: 'tone', 3: 'fingertapping'}
 N_CONDS = len(TRIAL_DICT.keys())  # audio, checkerboard, tapping
-N_BLOCKS = 2  # for detection task
+N_BLOCKS = 5  # for detection task
 N_TRIALS = 14  # for each condition
 DUR_RANGE = (1, 5)  # avg of 3s
 ITI_RANGE = (3, 11.84)  # max determined to minimize difference from TASK_TIME
@@ -41,44 +34,68 @@ END_DUR = 6  # fixation after trials
 # total time = TASK_TIME + START_DUR + END_DUR = 450 = 7.5 mins
 
 
-def trial_duration_and_iti(dur_range, iti_range, n_trials, n_conds, seed=None):
+def detection_timing():
+    block_dur = 18
+    rest_dur = 12
+    durs = [block_dur] * N_BLOCKS * N_CONDS
+    itis = [rest_dur] * N_BLOCKS * N_CONDS
+    trial_types = list(range(1, N_CONDS+1)) * N_BLOCKS
+    trial_types = [TRIAL_DICT[tt] for tt in trial_types]
+    np.random.shuffle(trial_types)
+    timing_info = np.vstack((durs, itis, trial_types)).T
+    timing_df = pd.DataFrame(columns=['duration', 'iti', 'trial_type'],
+                             data=timing_info)
+    return timing_df
+
+
+def estimation_timing(seed=None):
     """
     Produces lists containing n_conds arrays of n_trials length for trial
     durations and intertrial intervals based on a uniform distribution.
     The process is iterative to minimize the amount of duration lost
     """
-    length = (np.average(dur_range) + np.average(iti_range)) * n_trials
-    if np.abs((length * n_conds) - TASK_TIME) > 1:
+    length = (np.average(DUR_RANGE) + np.average(ITI_RANGE)) * N_TRIALS
+    if np.abs((length * N_CONDS) - TASK_TIME) > 1:
         raise Exception('Inputs do not seem compatible with total desired '
                         'time.')
     missing_time_per_cond = np.finfo(dtype='float64').max
     if not seed:
         seed = np.random.randint(1000, 9999)
 
-    while not np.isclose(missing_time_per_cond, 0.0, atol=.001):
+    while not np.isclose(missing_time_per_cond, 0.0, atol=.5):
         state = np.random.RandomState()
-        trial_durs = state.uniform(dur_range[0], dur_range[1], n_trials)
-        trial_itis = state.uniform(iti_range[0], iti_range[1], n_trials)
+        trial_durs = state.uniform(DUR_RANGE[0], DUR_RANGE[1], N_TRIALS)
+        trial_itis = state.uniform(ITI_RANGE[0], ITI_RANGE[1], N_TRIALS)
         missing_time_per_cond = length - np.sum(trial_durs + trial_itis)
         seed += 1
 
     # Fill in one trial's ITI with missing time for constant total time
-    missing_time_per_cond += (TASK_TIME / n_conds) - length
-    total_missing_time = missing_time_per_cond * n_conds
+    missing_time_per_cond += (TASK_TIME / N_CONDS) - length
     trial_itis[-1] += missing_time_per_cond
 
-    all_cond_trial_durs = [np.random.permutation(trial_durs) for _ in range(n_conds)]
-    all_cond_trial_itis = [np.random.permutation(trial_itis) for _ in range(n_conds)]
-    return all_cond_trial_durs, all_cond_trial_itis, seed
+    all_cond_trial_durs = [np.random.permutation(trial_durs) for _ in range(N_CONDS)]
+    all_cond_trial_itis = [np.random.permutation(trial_itis) for _ in range(N_CONDS)]
+    trials = list(range(1, N_CONDS + 1)) * N_TRIALS
+    np.random.shuffle(trials)
+    durations = []
+    itis = []
+    c = {t: 0 for t in np.unique(trials)}
+    for condition in trials:
+        durations.append(all_cond_trial_durs[condition-1][c[condition]])
+        itis.append(all_cond_trial_itis[condition-1][c[condition]])
+        c[condition] += 1
+
+    trials = [TRIAL_DICT[t] for t in trials]
+    timing_info = np.vstack((durations, itis, trials)).T
+    timing_df = pd.DataFrame(columns=['duration', 'iti', 'trial_type'],
+                             data=timing_info)
+    return timing_df, seed
 
 
 def determine_timing(ttype, seed=None):
     if ttype not in ['Detection', 'Estimation']:
         raise Exception()
 
-    durs, itis, seed = trial_duration_and_iti(
-        dur_range=DUR_RANGE, iti_range=ITI_RANGE, n_trials=N_TRIALS,
-        n_conds=N_CONDS, seed=seed)
     n_tones = len(_TONE_FILES)
     n_repeats = int(np.ceil(N_TRIALS / n_tones))
     tone_nums = np.arange(n_tones)
@@ -88,54 +105,24 @@ def determine_timing(ttype, seed=None):
 
     # set order of trials
     if ttype == 'Estimation':
-        # randomize order
-        trials = list(range(1, N_CONDS + 1))
-        trials *= N_TRIALS
-        np.random.shuffle(trials)  # pylint: disable=E1101
+        timing_df, seed = estimation_timing(seed=seed)
     elif ttype == 'Detection':
         # temporary requirement that trials divide evenly into block
-        assert N_TRIALS % N_BLOCKS == 0
-        N_TRIALS_PER_BLOCK = N_TRIALS // N_BLOCKS
+        timing_df = detection_timing()
 
-        # shuffle order of conditions (but repeated in same order across blocks)
-        cond_list = list(range(1, N_CONDS + 1))
-        np.random.shuffle(cond_list)
-        trials = [[N_TRIALS_PER_BLOCK * [i] for i in cond_list] for _ in range(N_BLOCKS)]
-        trials = [item for sublist in trials for item in sublist]
-        trials = [item for sublist in trials for item in sublist]
-
-    trial_durations = []
-    dur_counts = {ttype: 0 for ttype in list(set(trials))}
-    for i_trial, trial in enumerate(trials):
-        trial_durations.append(durs[trial-1][dur_counts[trial]])
-        dur_counts[trial] += 1
-
-    trial_itis = []
-    iti_counts = {ttype: 0 for ttype in list(set(trials))}
-    for trial in trials:
-        trial_itis.append(itis[trial-1][iti_counts[trial]])
-        iti_counts[trial] += 1
-
-    stims = []
     c = 0
-    for trial in trials:
-        if TRIAL_DICT[trial] == 'Tone':
-            stims.append(tone_files[c])
+    for trial in timing_df.index:
+        if timing_df.loc[trial, 'trial_type'] == 'tone':
+            timing_df.loc[trial, 'stimulus'] = tone_files[c]
             c += 1
         else:
-            stims.append(None)
-
-    out = {"trial_types": trials,
-           "durations": trial_durations,
-           "itis": trial_itis,
-           "stim_files": stims}
-    return out, seed
+            timing_df.loc[trial, 'stimulus'] = None
+    return timing_df, seed
 
 
 def main():
-    subjects = np.arange(1, 2, dtype=int).astype(str)
-    sessions = np.arange(1, 21, dtype=int).astype(str)
-    sessions = np.arange(1, 4, dtype=int).astype(str)
+    subjects = np.arange(1, 5, dtype=int).astype(str)  # 5
+    sessions = np.arange(1, 11, dtype=int).astype(str)  # 10
     ttypes = ['Detection', 'Estimation']
     d = {}
     seed = 1
@@ -148,10 +135,11 @@ def main():
             for ttype in ttypes:
                 print('\tCompiling {0} task'.format(ttype))
                 print('\t   Updating seed to {0}'.format(seed))
-                d[sub][ses][ttype], seed = determine_timing(ttype, seed=seed)
+                df, seed = determine_timing(ttype, seed=seed)
 
-                with open('config.json', 'w') as fo:
-                    json.dump(d, fo, indent=4, sort_keys=True)
+                df.to_csv('config/sub-{0}_ses-{1}_task-primary{2}_run-01_'
+                          'config.tsv'.format(sub.zfill(2), ses.zfill(2), ttype),
+                          sep='\t', index=False)
 
 
 if __name__ == '__main__':
