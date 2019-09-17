@@ -227,7 +227,7 @@ if __name__ == '__main__':
     startTime = datetime.now()
     routine_clock = psychopy.core.Clock()
     trials_clock = psychopy.core.Clock()
-    COLUMNS = ['trial_number', 'onset', 'duration', 'trial_type',
+    COLUMNS = ['onset', 'duration', 'trial_type', 'trial_number',
                'response_time', 'tap_count', 'tap_duration', 'stim_file']
     data_set = {c: [] for c in COLUMNS}
     if not os.path.isdir('data'):
@@ -294,7 +294,8 @@ if __name__ == '__main__':
 
     # finish running trials
     out_frame = pd.DataFrame(data_set, columns=COLUMNS)
-    out_frame.to_csv(filename + '.tsv', sep='\t', na_rep='n/a', index=False)
+    out_frame.to_csv(filename + '.tsv', sep='\t', line_terminator='\n',
+                     na_rep='n/a', index=False)
 
     end_screen = psychopy.visual.TextStim(window, "The task is now complete!")
     end_screen.draw()
