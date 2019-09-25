@@ -35,8 +35,8 @@ END_DUR = 6  # fixation after trials
 
 
 def detection_timing():
-    block_dur = 18
-    rest_dur = 12
+    block_dur = 14.5
+    rest_dur = 14.5
     durs = [block_dur] * N_BLOCKS * N_CONDS
     itis = [rest_dur] * N_BLOCKS * N_CONDS
     trial_types = list(range(1, N_CONDS+1)) * N_BLOCKS

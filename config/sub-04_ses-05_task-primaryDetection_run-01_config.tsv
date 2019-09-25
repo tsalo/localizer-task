@@ -1,16 +1,16 @@
 duration	iti	trial_type	stimulus
-18	12	tone	audio/500Hz_20s.wav
-18	12	fingertapping	
-18	12	fingertapping	
-18	12	checkerboard	
-18	12	fingertapping	
-18	12	tone	audio/850Hz_20s.wav
-18	12	tone	audio/850Hz_20s.wav
-18	12	checkerboard	
-18	12	fingertapping	
-18	12	checkerboard	
-18	12	tone	audio/750Hz_20s.wav
-18	12	tone	audio/500Hz_20s.wav
-18	12	checkerboard	
-18	12	fingertapping	
-18	12	checkerboard	
+14.5	14.5	tone	audio/850Hz_20s.wav
+14.5	14.5	fingertapping	
+14.5	14.5	checkerboard	
+14.5	14.5	fingertapping	
+14.5	14.5	tone	audio/600Hz_20s.wav
+14.5	14.5	fingertapping	
+14.5	14.5	fingertapping	
+14.5	14.5	checkerboard	
+14.5	14.5	tone	audio/750Hz_20s.wav
+14.5	14.5	checkerboard	
+14.5	14.5	checkerboard	
+14.5	14.5	checkerboard	
+14.5	14.5	tone	audio/850Hz_20s.wav
+14.5	14.5	fingertapping	
+14.5	14.5	tone	audio/750Hz_20s.wav
