@@ -259,9 +259,9 @@ if __name__ == '__main__':
             stim_file = config_df.loc[trial_num, 'stimulus']
             # tone
             tone_num = _TONE_FILES.index(stim_file)
-            #tones[tone_num].play()
+            tones[tone_num].play()
             task_keys, _ = draw(win=window, stim=crosshair, duration=trial_duration)
-            #tones[tone_num].stop()
+            tones[tone_num].stop()
             c += 1
             data_set['stim_file'].append(stim_file)
         elif trial_type == 'fingertapping':
@@ -294,9 +294,6 @@ if __name__ == '__main__':
     new_end_dur = TOTAL_TIME - duration.total_seconds()
     draw(win=window, stim=crosshair, duration=new_end_dur)
     duration = datetime.now() - startTime
-    print('\n\n\n')
-    print(duration)
-    print('\n\n\n')
 
     # finish running trials
     out_frame = pd.DataFrame(data_set, columns=COLUMNS)

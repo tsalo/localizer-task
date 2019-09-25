@@ -124,7 +124,6 @@ def main():
     subjects = np.arange(1, 5, dtype=int).astype(str)  # 5
     sessions = np.arange(1, 11, dtype=int).astype(str)  # 10
     ttypes = ['Detection', 'Estimation']
-    ttypes = ['Detection']
     d = {}
     seed = 1
     for sub in subjects:
