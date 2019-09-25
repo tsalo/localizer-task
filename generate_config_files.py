@@ -35,8 +35,8 @@ END_DUR = 6  # fixation after trials
 
 
 def detection_timing():
-    block_dur = 18
-    rest_dur = 12
+    block_dur = 14.5
+    rest_dur = 14.5
     durs = [block_dur] * N_BLOCKS * N_CONDS
     itis = [rest_dur] * N_BLOCKS * N_CONDS
     trial_types = list(range(1, N_CONDS+1)) * N_BLOCKS
@@ -124,6 +124,7 @@ def main():
     subjects = np.arange(1, 5, dtype=int).astype(str)  # 5
     sessions = np.arange(1, 11, dtype=int).astype(str)  # 10
     ttypes = ['Detection', 'Estimation']
+    ttypes = ['Detection']
     d = {}
     seed = 1
     for sub in subjects:

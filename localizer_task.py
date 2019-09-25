@@ -46,7 +46,7 @@ ITI_RANGE = (3, 11.84)  # max determined to minimize difference from TASK_TIME
 TASK_TIME = 438  # time for trials in task
 START_DUR = 6  # fixation before trials
 END_DUR = 6  # fixation after trials
-# total time = TASK_TIME + START_DUR + END_DUR = 450 = 7.5 mins
+TOTAL_TIME = TASK_TIME + START_DUR + END_DUR  # = 450 = 7.5 mins
 
 
 def close_on_esc(win):
@@ -184,7 +184,7 @@ if __name__ == '__main__':
         title='Primary {0}'.format(exp_info['ttype']),
         order=['subject', 'session'])
     window = psychopy.visual.Window(
-        size=(800, 600), fullscr=True, monitor='testMonitor', units='deg',
+        size=(800, 600), fullscr=False, monitor='testMonitor', units='deg',
         allowStencil=False, allowGUI=False)
     if not dlg.OK:
         psychopy.core.quit()
@@ -259,9 +259,9 @@ if __name__ == '__main__':
             stim_file = config_df.loc[trial_num, 'stimulus']
             # tone
             tone_num = _TONE_FILES.index(stim_file)
-            tones[tone_num].play()
+            #tones[tone_num].play()
             task_keys, _ = draw(win=window, stim=crosshair, duration=trial_duration)
-            tones[tone_num].stop()
+            #tones[tone_num].stop()
             c += 1
             data_set['stim_file'].append(stim_file)
         elif trial_type == 'fingertapping':
@@ -290,7 +290,13 @@ if __name__ == '__main__':
         psychopy.logging.flush()
 
     # End with six seconds of rest
-    draw(win=window, stim=crosshair, duration=END_DUR)
+    duration = datetime.now() - startTime
+    new_end_dur = TOTAL_TIME - duration.total_seconds()
+    draw(win=window, stim=crosshair, duration=new_end_dur)
+    duration = datetime.now() - startTime
+    print('\n\n\n')
+    print(duration)
+    print('\n\n\n')
 
     # finish running trials
     out_frame = pd.DataFrame(data_set, columns=COLUMNS)
@@ -298,6 +304,6 @@ if __name__ == '__main__':
                      na_rep='n/a', index=False)
 
     end_screen = psychopy.visual.TextStim(window, "The task is now complete!")
-    end_screen.draw()
+    end_screen.draw(duration=1)
     window.flip()
-    psychopy.event.waitKeys(keyList=['space', '5', 'escape'])
+    #psychopy.event.waitKeys(keyList=['space', '5', 'escape'])
