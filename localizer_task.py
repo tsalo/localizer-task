@@ -300,7 +300,7 @@ if __name__ == '__main__':
     out_frame.to_csv(filename + '.tsv', sep='\t', line_terminator='\n',
                      na_rep='n/a', index=False)
 
-    end_screen = psychopy.visual.TextStim(window, "The task is now complete!")
+    end_screen = psychopy.visual.TextStim(window, "The task is now complete.\nPress space to continue.")
     end_screen.draw(duration=1)
     window.flip()
-    #psychopy.event.waitKeys(keyList=['space', '5', 'escape'])
+    psychopy.event.waitKeys(keyList=['space', '5', 'escape'])
