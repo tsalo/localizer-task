@@ -26,7 +26,10 @@ from psychopy.constants import STARTED, STOPPED  # pylint: disable=E0401
 psychopy.prefs.general['audioLib'] = ['sounddevice', 'pygame']
 # psychopy.prefs.general['audioDevice'] = ['Built-in Output']
 
-_TAPPING_INSTRUCTIONS = 'Tap your fingers as quickly as possible!'
+_TAPPING_INSTRUCTIONS = """\
+Tap your fingers as
+quickly as possible!
+"""
 
 # These tracks are 20 seconds long.
 # 10s versions created by
@@ -185,7 +188,8 @@ if __name__ == '__main__':
         order=['subject', 'session'])
     window = psychopy.visual.Window(
         size=(800, 600), fullscr=True, monitor='testMonitor', units='deg',
-        allowStencil=False, allowGUI=False)
+        # size=(500, 400), fullscr=False, monitor='testMonitor', units='deg',
+        allowStencil=False, allowGUI=False, color='black')
     if not dlg.OK:
         psychopy.core.quit()
 
@@ -205,24 +209,43 @@ if __name__ == '__main__':
                       exp_info['ttype']))
     config_df = pd.read_csv(config_file, sep='\t')
     # Checkerboards
-    checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
+    checkerboards = (Checkerboard(window),
+                     Checkerboard(window, inverted=True))
     # Tones
     tones = [psychopy.sound.Sound(tf) for tf in _TONE_FILES]
-    tone = psychopy.visual.TextStim(window, '', height=2, wrapWidth=30)
     # Finger tapping instructions
-    tapping = psychopy.visual.TextStim(window, _TAPPING_INSTRUCTIONS, height=2,
-                                       wrapWidth=30)
+    tapping = psychopy.visual.TextStim(
+        window,
+        _TAPPING_INSTRUCTIONS,
+        height=2,
+        wrapWidth=30,
+        name='tapping',
+        color='white')
     # Rest between tasks
-    crosshair = psychopy.visual.TextStim(window, '+', height=2)
+    crosshair = psychopy.visual.TextStim(
+        window,
+        '+',
+        height=2,
+        name='crosshair',
+        color='white')
     # Waiting for scanner
-    waiting = psychopy.visual.TextStim(window, "Waiting for scanner ...")
+    waiting = psychopy.visual.TextStim(
+        window,
+        "Waiting for scanner ...",
+        name='waiting',
+        color='white')
+    end_screen = psychopy.visual.TextStim(
+        window,
+        "The task is now complete.",
+        name='end_screen',
+        color='white')
 
     # Scanner runtime
     # ---------------
     # Wait for trigger from scanner.
     waiting.draw()
     window.flip()
-    psychopy.event.waitKeys(keyList=['space', '5'])
+    psychopy.event.waitKeys(keyList=['5'])
 
     startTime = datetime.now()
     routine_clock = psychopy.core.Clock()
@@ -295,12 +318,13 @@ if __name__ == '__main__':
     draw(win=window, stim=crosshair, duration=new_end_dur)
     duration = datetime.now() - startTime
 
-    # finish running trials
+    # Compile file
     out_frame = pd.DataFrame(data_set, columns=COLUMNS)
     out_frame.to_csv(filename + '.tsv', sep='\t', line_terminator='\n',
                      na_rep='n/a', index=False)
 
-    end_screen = psychopy.visual.TextStim(window, "The task is now complete.\nPress space to continue.")
-    end_screen.draw(duration=1)
+    draw(win=window, stim=end_screen, duration=2)
     window.flip()
-    psychopy.event.waitKeys(keyList=['space', '5', 'escape'])
+
+    del(checkerboards, tones, tapping, crosshair, waiting, end_screen)
+    window.close()
