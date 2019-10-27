@@ -189,7 +189,7 @@ if __name__ == '__main__':
     if not dlg.OK:
         psychopy.core.quit()
 
-    filename = ('data/sub-{0}_ses-{1}_task-primary{2}'
+    filename = ('data/sub-{0}_ses-{1}_task-localizer{2}'
                 '_run-01_events').format(exp_info['subject'].zfill(2),
                                          exp_info['session'].zfill(2),
                                          exp_info['ttype'])
@@ -199,7 +199,7 @@ if __name__ == '__main__':
     # Initialize stimuli
     # ------------------
     config_file = (
-        'config/sub-{0}_ses-{1}_task-primary{2}_run-01_config'
+        'config/sub-{0}_ses-{1}_task-localizer{2}_run-01_config'
         '.tsv'.format(exp_info['subject'].zfill(2),
                       exp_info['session'].zfill(2),
                       exp_info['ttype']))

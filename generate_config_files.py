@@ -137,7 +137,7 @@ def main():
                 print('\t   Updating seed to {0}'.format(seed))
                 df, seed = determine_timing(ttype, seed=seed)
 
-                df.to_csv('config/sub-{0}_ses-{1}_task-primary{2}_run-01_'
+                df.to_csv('config/sub-{0}_ses-{1}_task-localizer{2}_run-01_'
                           'config.tsv'.format(sub.zfill(2), ses.zfill(2), ttype),
                           sep='\t', index=False)
 
