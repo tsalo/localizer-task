@@ -16,8 +16,8 @@ descriptions = {
     }
 }
 
-with open('task-primaryEstimation_events.json', 'w') as fo:
+with open('task-localizerEstimation_events.json', 'w') as fo:
     json.dump(descriptions, fo, sort_keys=True, indent=4)
 
-with open('task-primaryDetection_events.json', 'w') as fo:
+with open('task-localizerDetection_events.json', 'w') as fo:
     json.dump(descriptions, fo, sort_keys=True, indent=4)
