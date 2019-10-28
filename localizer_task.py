@@ -297,13 +297,13 @@ if __name__ == '__main__':
         # Rest
         rest_keys, _ = draw(win=window, stim=crosshair, duration=rest_duration)
         if task_keys and rest_keys:
-            data_set['tap_duration'].append((trial_duration + rest_keys[-1][1]) - task_keys[0][1])
             data_set['response_time'].append(task_keys[0][1])
+            data_set['tap_duration'].append(rest_keys[-1][1] - task_keys[0][1])
         elif task_keys and not rest_keys:
             data_set['response_time'].append(task_keys[0][1])
             data_set['tap_duration'].append(task_keys[-1][1] - task_keys[0][1])
         elif rest_keys and not task_keys:
-            data_set['response_time'].append(trial_duration + rest_keys[0][1])
+            data_set['response_time'].append(rest_keys[0][1])
             data_set['tap_duration'].append(rest_keys[-1][1] - rest_keys[0][1])
         else:
             data_set['response_time'].append(np.nan)
