@@ -178,7 +178,7 @@ if __name__ == '__main__':
     # Collect user input
     # ------------------
     # Remember to turn fullscr to True for the real deal.
-
+    ser = serial.Serial("COM2", 115200)
     exp_info = {'subject': '',
                 'session': '',
                 'ttype': ['Estimation', 'Detection']}
@@ -243,9 +243,11 @@ if __name__ == '__main__':
     # Scanner runtime
     # ---------------
     # Wait for trigger from scanner.
+    ser.write("RR")
     waiting.draw()
     window.flip()
     psychopy.event.waitKeys(keyList=['5'])
+    ser.write("FF")
 
     startTime = datetime.now()
     routine_clock = psychopy.core.Clock()
@@ -325,6 +327,8 @@ if __name__ == '__main__':
 
     draw(win=window, stim=end_screen, duration=2)
     window.flip()
+    ser.write("00")
+    ser.close()
 
     del(checkerboards, tones, tapping, crosshair, waiting, end_screen)
     window.close()
