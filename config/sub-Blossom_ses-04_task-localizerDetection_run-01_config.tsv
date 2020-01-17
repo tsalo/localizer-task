@@ -1,0 +1,17 @@
+duration	iti	trial_type	stim_file
+14.5	14.5	motor	
+14.5	14.5	motor/auditory	audio/250Hz_20s.wav
+14.5	14.5	motor	
+14.5	14.5	visual	
+14.5	14.5	motor/auditory	audio/850Hz_20s.wav
+14.5	14.5	motor	
+14.5	14.5	visual/auditory	audio/850Hz_20s.wav
+14.5	14.5	motor/auditory	audio/250Hz_20s.wav
+14.5	14.5	visual/auditory	audio/600Hz_20s.wav
+14.5	14.5	motor/auditory	audio/850Hz_20s.wav
+14.5	14.5	visual/auditory	audio/250Hz_20s.wav
+14.5	14.5	visual	
+14.5	14.5	visual	
+14.5	14.5	visual	
+14.5	14.5	motor	
+14.5	14.5	visual/auditory	audio/850Hz_20s.wav

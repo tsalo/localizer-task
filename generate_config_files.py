@@ -22,12 +22,18 @@ _TONE_FILES = ['audio/250Hz_20s.wav',
                'audio/600Hz_20s.wav',
                'audio/750Hz_20s.wav',
                'audio/850Hz_20s.wav']
-TRIAL_DICT = {1: 'checkerboard', 2: 'tone', 3: 'fingertapping'}
+TRIAL_DICT = {1: 'visual',
+              2: 'visual/auditory',
+              3: 'motor',
+              4: 'motor/auditory'}
 N_CONDS = len(TRIAL_DICT.keys())  # audio, checkerboard, tapping
-N_BLOCKS = 5  # for detection task
-N_TRIALS = 14  # for each condition
-DUR_RANGE = (1, 5)  # avg of 3s
-ITI_RANGE = (3, 11.84)  # max determined to minimize difference from TASK_TIME
+# For detection task
+N_BLOCKS = 4  # for each condition, for detection task
+# For estimation task
+N_TRIALS = 15  # for each condition, for estimation task
+DUR_RANGE = (0.5, 4)  # avg of 3s
+ITI_RANGE = (2, 8)  # max determined to minimize difference from TASK_TIME
+# General
 TASK_TIME = 438  # time for trials in task
 START_DUR = 6  # fixation before trials
 END_DUR = 6  # fixation after trials
@@ -39,7 +45,7 @@ def detection_timing():
     rest_dur = 14.5
     durs = [block_dur] * N_BLOCKS * N_CONDS
     itis = [rest_dur] * N_BLOCKS * N_CONDS
-    trial_types = list(range(1, N_CONDS+1)) * N_BLOCKS
+    trial_types = list(TRIAL_DICT.keys()) * N_BLOCKS
     trial_types = [TRIAL_DICT[tt] for tt in trial_types]
     np.random.shuffle(trial_types)
     timing_info = np.vstack((durs, itis, trial_types)).T
@@ -55,9 +61,9 @@ def estimation_timing(seed=None):
     The process is iterative to minimize the amount of duration lost
     """
     length = (np.average(DUR_RANGE) + np.average(ITI_RANGE)) * N_TRIALS
-    if np.abs((length * N_CONDS) - TASK_TIME) > 1:
+    if np.abs((length * N_CONDS) - TASK_TIME) > 3:
         raise Exception('Inputs do not seem compatible with total desired '
-                        'time.')
+                        'time. Proposed length: {}'.format(length * N_CONDS))
     missing_time_per_cond = np.finfo(dtype='float64').max
     if not seed:
         seed = np.random.randint(1000, 9999)
@@ -65,7 +71,9 @@ def estimation_timing(seed=None):
     while not np.isclose(missing_time_per_cond, 0.0, atol=.5):
         state = np.random.RandomState()
         trial_durs = state.uniform(DUR_RANGE[0], DUR_RANGE[1], N_TRIALS)
+        trial_durs = np.round(trial_durs, 1)
         trial_itis = state.uniform(ITI_RANGE[0], ITI_RANGE[1], N_TRIALS)
+        trial_itis = np.round(trial_itis, 1)
         missing_time_per_cond = length - np.sum(trial_durs + trial_itis)
         seed += 1
 
@@ -96,8 +104,9 @@ def determine_timing(ttype, seed=None):
     if ttype not in ['Detection', 'Estimation']:
         raise Exception()
 
+    n_audio_trials = N_TRIALS * len([k for k in TRIAL_DICT.values() if 'auditory' in k])
     n_tones = len(_TONE_FILES)
-    n_repeats = int(np.ceil(N_TRIALS / n_tones))
+    n_repeats = int(np.ceil(n_audio_trials / n_tones))
     tone_nums = np.arange(n_tones)
     tone_nums = np.repeat(tone_nums, n_repeats)
     np.random.shuffle(tone_nums)  # pylint: disable=E1101
@@ -112,16 +121,16 @@ def determine_timing(ttype, seed=None):
 
     c = 0
     for trial in timing_df.index:
-        if timing_df.loc[trial, 'trial_type'] == 'tone':
-            timing_df.loc[trial, 'stimulus'] = tone_files[c]
+        if 'auditory' in timing_df.loc[trial, 'trial_type']:
+            timing_df.loc[trial, 'stim_file'] = tone_files[c]
             c += 1
         else:
-            timing_df.loc[trial, 'stimulus'] = None
+            timing_df.loc[trial, 'stim_file'] = None
     return timing_df, seed
 
 
 def main():
-    subjects = np.arange(1, 5, dtype=int).astype(str)  # 5
+    subjects = ['Blossom', 'Bubbles', 'Buttercup', 'Pilot', '01', '02', '03']
     sessions = np.arange(1, 11, dtype=int).astype(str)  # 10
     ttypes = ['Detection', 'Estimation']
     d = {}

@@ -13,15 +13,15 @@ from __future__ import division, print_function
 import time
 import os
 import os.path as op
+from glob import glob
 from datetime import datetime
+
+import serial
 import numpy as np
 import pandas as pd
-import psychopy  # pylint: disable=E0401
-import psychopy.core  # pylint: disable=E0401
-import psychopy.event  # pylint: disable=E0401
-import psychopy.gui  # pylint: disable=E0401
-import psychopy.visual  # pylint: disable=E0401
-import psychopy.sound  # pylint: disable=E0401
+
+import psychopy
+from psychopy import core, event, gui, visual, sound
 from psychopy.constants import STARTED, STOPPED  # pylint: disable=E0401
 psychopy.prefs.general['audioLib'] = ['sounddevice', 'pygame']
 # psychopy.prefs.general['audioDevice'] = ['Built-in Output']
@@ -35,17 +35,15 @@ quickly as possible!
 # 10s versions created by
 # https://www.audiocheck.net/audiofrequencysignalgenerator_sinetone.php
 # Durations doubled with Audacity.
-_TONE_FILES = ['audio/250Hz_20s.wav',
-               'audio/500Hz_20s.wav',
-               'audio/600Hz_20s.wav',
-               'audio/750Hz_20s.wav',
-               'audio/850Hz_20s.wav']
-TRIAL_DICT = {1: 'checkerboard', 2: 'tone', 3: 'fingertapping'}
-N_CONDS = len(TRIAL_DICT.keys())  # audio, checkerboard, tapping
-N_BLOCKS = 3  # for detection task
-N_TRIALS = 14  # for each condition
-DUR_RANGE = (1, 5)  # avg of 3s
-ITI_RANGE = (3, 11.84)  # max determined to minimize difference from TASK_TIME
+_TONE_FILES = ['stimuli/audio/250Hz_20s.wav',
+               'stimuli/audio/500Hz_20s.wav',
+               'stimuli/audio/600Hz_20s.wav',
+               'stimuli/audio/750Hz_20s.wav',
+               'stimuli/audio/850Hz_20s.wav']
+TRIAL_DICT = {1: 'visual',
+              2: 'visual/auditory',
+              3: 'motor',
+              4: 'motor/auditory'}
 TASK_TIME = 438  # time for trials in task
 START_DUR = 6  # fixation before trials
 END_DUR = 6  # fixation after trials
@@ -56,9 +54,9 @@ def close_on_esc(win):
     """
     Closes window if escape is pressed
     """
-    if 'escape' in psychopy.event.getKeys():
+    if 'escape' in event.getKeys():
         win.close()
-        psychopy.core.quit()
+        core.quit()
 
 
 def flash_stimuli(win, stimuli, duration, frequency=1):
@@ -67,24 +65,28 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
 
     Parameters
     ----------
-    win : (psychopy.visual.Window) window in which to draw stimuli
-    stimuli : (iterable) some iterable of objects with `.draw()` method
-    duration : (numeric) duration of flashing in seconds
-    frequency : (numeric) frequency of flashing in Hertz
+    win : (visual.Window)
+        window in which to draw stimuli
+    stimuli : (iterable)
+        some iterable of objects with `.draw()` method
+    duration : (numeric)
+        duration of flashing in seconds
+    frequency : (numeric)
+        frequency of flashing in Hertz
     """
     start_time = time.time()
     duration_one_display = 1 / frequency
     n_stim = len(stimuli)
     counter = 0
-    response = psychopy.event.BuilderKeyResponse()
+    response = event.BuilderKeyResponse()
     response.tStart = start_time
     response.frameNStart = 0
     response.status = STARTED
     window.callOnFlip(response.clock.reset)
-    psychopy.event.clearEvents(eventType='keyboard')
+    event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
-        keys = psychopy.event.getKeys(keyList=['1', '2'],
-                                      timeStamped=trials_clock)
+        keys = event.getKeys(keyList=['1', '2'],
+                             timeStamped=trials_clock)
         if keys:
             response.keys.extend(keys)
             response.rt.append(response.clock.getTime())
@@ -92,8 +94,8 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
         while time.time() - _this_start < duration_one_display:
             this_stim = stimuli[counter % n_stim]
             win.flip()
-            keys = psychopy.event.getKeys(keyList=['1', '2'],
-                                          timeStamped=trials_clock)
+            keys = event.getKeys(keyList=['1', '2'],
+                                 timeStamped=trials_clock)
             if keys:
                 response.keys.extend(keys)
                 response.rt.append(response.clock.getTime())
@@ -111,22 +113,23 @@ def draw(win, stim, duration):
 
     Parameters
     ----------
-    win : (psychopy.visual.Window)
+    win : (visual.Window)
     stim : object with `.draw()` method
-    duration : (numeric) duration in seconds to display the stimulus
+    duration : (numeric)
+        duration in seconds to display the stimulus
     """
     # Use a busy loop instead of sleeping so we can exit early if need be.
     start_time = time.time()
-    response = psychopy.event.BuilderKeyResponse()
+    response = event.BuilderKeyResponse()
     response.tStart = start_time
     response.frameNStart = 0
     response.status = STARTED
     window.callOnFlip(response.clock.reset)
-    psychopy.event.clearEvents(eventType='keyboard')
+    event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
         stim.draw()
-        keys = psychopy.event.getKeys(keyList=['1', '2'],
-                                      timeStamped=trials_clock)
+        keys = event.getKeys(keyList=['1', '2'],
+                             timeStamped=trials_clock)
         if keys:
             response.keys.extend(keys)
             response.rt.append(response.clock.getTime())
@@ -142,35 +145,44 @@ class Checkerboard(object):
 
     Parameters
     ----------
-    win : (psychopy.visual.Window) window in which to display stimulus
-    side_len : (int) number of rings in radial checkerboard
-    inverted : (bool) if true, invert black and white squares
-    size : (numeric) size of checkerboard
-    kwds : keyword arguments to psychopy.visual.ImageStim
+    win : (visual.Window)
+        window in which to display stimulus
+    side_len : (int)
+        number of rings in radial checkerboard
+    inverted : (bool)
+        if true, invert black and white squares
+    size : (numeric)
+        size of checkerboard
+    kwargs : dict
+        keyword arguments to visual.ImageStim
     """
 
-    def __init__(self, win, side_len=8, inverted=False, size=16, **kwds):
+    def __init__(self, win, side_len=8, inverted=False, size=16, **kwargs):
         self.win = win
         self.side_len = side_len
         self.inverted = inverted
         self.size = size
 
         self._array = self._get_array()
-        self._stim = psychopy.visual.RadialStim(
+        self._stim = visual.RadialStim(
             win=self.win, tex=self._array, size=self.size, radialCycles=1,
-            **kwds
+            **kwargs
         )
 
     def _get_array(self):
-        """Return square `np.ndarray` of alternating ones and negative ones
-        with shape `(self.side_len, self.side_len)`."""
+        """
+        Return square `np.ndarray` of alternating ones and negative ones
+        with shape `(self.side_len, self.side_len)`.
+        """
         board = np.ones((self.side_len, self.side_len), dtype=np.int32)
         board[::2, ::2] = -1
         board[1::2, 1::2] = -1
         return board if not self.inverted else board * -1
 
     def draw(self):
-        """Draw checkerboard object."""
+        """
+        Draw checkerboard object.
+        """
         self._stim.draw()
 
 
@@ -178,43 +190,48 @@ if __name__ == '__main__':
     # Collect user input
     # ------------------
     # Remember to turn fullscr to True for the real deal.
-    ser = serial.Serial("COM2", 115200)
-    exp_info = {'subject': '',
-                'session': '',
-                'ttype': ['Estimation', 'Detection']}
-    dlg = psychopy.gui.DlgFromDict(
+    all_config_files = sorted(glob('config/sub*_config.tsv'))
+    all_config_files = [op.basename(acf) for acf in all_config_files]
+    all_subjects = sorted(list(set([acf.split('_')[0].split('-')[1] for acf in all_config_files])))
+    all_sessions = sorted(list(set([acf.split('_')[1].split('-')[1] for acf in all_config_files])))
+    exp_info = {'Subject': all_subjects,
+                'Session': all_sessions,
+                'Run Type': ['Estimation', 'Detection'],
+                'BioPac': ['Yes', 'No']}
+    dlg = gui.DlgFromDict(
         exp_info,
-        title='Primary {0}'.format(exp_info['ttype']),
-        order=['subject', 'session'])
-    window = psychopy.visual.Window(
-        size=(800, 600), fullscr=True, monitor='testMonitor', units='deg',
-        # size=(500, 400), fullscr=False, monitor='testMonitor', units='deg',
+        title='Localization task',
+        order=['Subject', 'Session', 'Run Type', 'BioPac'])
+    window = visual.Window(
+        # size=(800, 600), fullscr=True, monitor='testMonitor', units='deg',
+        size=(500, 400), fullscr=False, monitor='testMonitor', units='deg',
         allowStencil=False, allowGUI=False, color='black')
     if not dlg.OK:
-        psychopy.core.quit()
+        core.quit()
 
-    filename = ('data/sub-{0}_ses-{1}_task-localizer{2}'
-                '_run-01_events').format(exp_info['subject'].zfill(2),
-                                         exp_info['session'].zfill(2),
-                                         exp_info['ttype'])
-    if op.exists(filename + '.tsv'):
+    if exp_info['BioPac'] == 'Yes':
+        ser = serial.Serial("COM2", 115200)
+
+    base_name = 'sub-{0}_ses-{1}_task-localizer{2}_run-01'.format(
+        exp_info['Subject'].zfill(2),
+        exp_info['Session'].zfill(2),
+        exp_info['Run Type'])
+    filename = 'data/{0}_events'.format(base_name)
+    logfile = filename + '.log'
+    outfile = filename + '.tsv'
+    if op.exists(outfile) and 'Pilot' not in outfile:
         raise ValueError('Output file already exists.')
 
     # Initialize stimuli
     # ------------------
-    config_file = (
-        'config/sub-{0}_ses-{1}_task-localizer{2}_run-01_config'
-        '.tsv'.format(exp_info['subject'].zfill(2),
-                      exp_info['session'].zfill(2),
-                      exp_info['ttype']))
+    config_file = 'config/{0}_config.tsv'.format(base_name)
     config_df = pd.read_csv(config_file, sep='\t')
     # Checkerboards
-    checkerboards = (Checkerboard(window),
-                     Checkerboard(window, inverted=True))
+    checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
     # Tones
-    tones = [psychopy.sound.Sound(tf) for tf in _TONE_FILES]
+    tones = [sound.Sound(tf) for tf in _TONE_FILES]
     # Finger tapping instructions
-    tapping = psychopy.visual.TextStim(
+    tapping = visual.TextStim(
         window,
         _TAPPING_INSTRUCTIONS,
         height=2,
@@ -222,19 +239,19 @@ if __name__ == '__main__':
         name='tapping',
         color='white')
     # Rest between tasks
-    crosshair = psychopy.visual.TextStim(
+    crosshair = visual.TextStim(
         window,
         '+',
         height=2,
         name='crosshair',
         color='white')
     # Waiting for scanner
-    waiting = psychopy.visual.TextStim(
+    waiting = visual.TextStim(
         window,
-        "Waiting for scanner ...",
+        "Waiting for scanner...",
         name='waiting',
         color='white')
-    end_screen = psychopy.visual.TextStim(
+    end_screen = visual.TextStim(
         window,
         "The task is now complete.",
         name='end_screen',
@@ -243,22 +260,23 @@ if __name__ == '__main__':
     # Scanner runtime
     # ---------------
     # Wait for trigger from scanner.
-    ser.write("RR")
+    if exp_info['BioPac'] == 'Yes':
+        ser.write("RR")
     waiting.draw()
     window.flip()
-    psychopy.event.waitKeys(keyList=['5'])
-    ser.write("FF")
+    event.waitKeys(keyList=['5'])
+    if exp_info['BioPac'] == 'Yes':
+        ser.write("FF")
 
     startTime = datetime.now()
-    routine_clock = psychopy.core.Clock()
-    trials_clock = psychopy.core.Clock()
+    routine_clock = core.Clock()
+    trials_clock = core.Clock()
     COLUMNS = ['onset', 'duration', 'trial_type', 'trial_number',
                'response_time', 'tap_count', 'tap_duration', 'stim_file']
     data_set = {c: [] for c in COLUMNS}
-    if not os.path.isdir('data'):
+    if not op.isdir('data'):
         os.makedirs('data')
-    log_file = psychopy.logging.LogFile(filename + '.log',
-                                        level=psychopy.logging.DATA)
+    log_file = psychopy.logging.LogFile(logfile, level=psychopy.logging.DATA)
     psychopy.logging.console.setLevel(psychopy.logging.DATA)
 
     # Start with six seconds of rest
@@ -275,21 +293,21 @@ if __name__ == '__main__':
         data_set['trial_type'].append(trial_type)
         task_keys = []
         rest_keys = []
-        if trial_type == 'checkerboard':
+        if trial_type == 'visual':
             # flashing checkerboard
             task_keys, _ = flash_stimuli(window, checkerboards,
                                          duration=trial_duration, frequency=5)
             data_set['stim_file'].append('n/a')
-        elif trial_type == 'tone':
-            stim_file = config_df.loc[trial_num, 'stimulus']
+        elif trial_type == 'auditory':
+            stim_file = config_df.loc[trial_num, 'stim_file']
             # tone
-            tone_num = _TONE_FILES.index(stim_file)
+            tone_num = _TONE_FILES.index(op.join('stimuli', stim_file))
             tones[tone_num].play()
             task_keys, _ = draw(win=window, stim=crosshair, duration=trial_duration)
             tones[tone_num].stop()
             c += 1
             data_set['stim_file'].append(stim_file)
-        elif trial_type == 'fingertapping':
+        elif trial_type == 'motor':
             # finger tapping
             task_keys, _ = draw(win=window, stim=tapping, duration=trial_duration)
             data_set['stim_file'].append('n/a')
@@ -322,13 +340,13 @@ if __name__ == '__main__':
 
     # Compile file
     out_frame = pd.DataFrame(data_set, columns=COLUMNS)
-    out_frame.to_csv(filename + '.tsv', sep='\t', line_terminator='\n',
-                     na_rep='n/a', index=False)
+    out_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a', index=False)
 
     draw(win=window, stim=end_screen, duration=2)
     window.flip()
-    ser.write("00")
-    ser.close()
+    if exp_info['BioPac'] == 'Yes':
+        ser.write("00")
+        ser.close()
 
     del(checkerboards, tones, tapping, crosshair, waiting, end_screen)
     window.close()

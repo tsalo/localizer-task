@@ -1,43 +1,61 @@
-duration	iti	trial_type	stimulus
-4.653938171109711	9.01254214313348	checkerboard	
-3.2139465238097804	4.447432642729479	tone	audio/850Hz_20s.wav
-1.8066118354083107	11.422912453306465	checkerboard	
-4.653938171109711	5.294452949276765	fingertapping	
-3.259945989159261	8.798176978032616	tone	audio/500Hz_20s.wav
-4.409957630971193	5.163931146258921	tone	audio/500Hz_20s.wav
-1.3918654914001394	9.124534642767117	fingertapping	
-3.31200183795308	5.138928144213315	checkerboard	
-4.432200461368902	9.618732499443167	fingertapping	
-1.4464600412033017	4.809323676459885	fingertapping	
-3.31200183795308	11.422912453306465	tone	audio/600Hz_20s.wav
-4.04734296120499	4.447432642729479	checkerboard	
-4.432200461368902	5.1331894249559955	tone	audio/750Hz_20s.wav
-1.3918654914001394	4.7995231468907695	tone	audio/250Hz_20s.wav
-1.3918654914001394	8.798176978032616	checkerboard	
-1.4464600412033017	9.01254214313348	tone	audio/850Hz_20s.wav
-4.432200461368902	11.030825974649453	checkerboard	
-4.409957630971193	8.798176978032616	fingertapping	
-4.761987841244967	4.447432642729479	fingertapping	
-1.8066118354083107	5.1331894249559955	fingertapping	
-4.761987841244967	5.138928144213315	tone	audio/600Hz_20s.wav
-2.8574938091373783	5.138928144213315	fingertapping	
-4.04734296120499	11.422912453306465	fingertapping	
-1.1846646286645468	9.124534642767117	tone	audio/250Hz_20s.wav
-1.1846646286645468	9.01254214313348	fingertapping	
-3.2139465238097804	4.7995231468907695	fingertapping	
-1.1846646286645468	6.475993069149482	checkerboard	
-4.409957630971193	9.618732499443167	checkerboard	
-4.761987841244967	5.163931146258921	checkerboard	
-4.951083886097536	11.030825974649453	fingertapping	
-3.259945989159261	4.809323676459885	checkerboard	
-3.259945989159261	5.163931146258921	fingertapping	
-1.8066118354083107	5.294452949276765	tone	audio/850Hz_20s.wav
-3.31200183795308	6.475993069149482	fingertapping	
-4.951083886097536	9.124534642767117	checkerboard	
-2.8574938091373783	5.1331894249559955	checkerboard	
-3.2139465238097804	4.7995231468907695	checkerboard	
-4.951083886097536	4.809323676459885	tone	audio/250Hz_20s.wav
-4.653938171109711	6.475993069149482	tone	audio/750Hz_20s.wav
-4.04734296120499	11.030825974649453	tone	audio/500Hz_20s.wav
-1.4464600412033017	5.294452949276765	checkerboard	
-2.8574938091373783	9.618732499443167	tone	audio/750Hz_20s.wav
+duration	iti	trial_type	stim_file
+1.1	2.8	visual/auditory	audio/750Hz_20s.wav
+1.5	4.5	motor	
+2.5	2.8	motor/auditory	audio/850Hz_20s.wav
+1.5	7.5	visual/auditory	audio/850Hz_20s.wav
+3.2	4.7	motor/auditory	audio/500Hz_20s.wav
+0.6	2.8	visual	
+0.6	4.2	visual/auditory	audio/500Hz_20s.wav
+2.4	2.6	motor/auditory	audio/600Hz_20s.wav
+3.4	4.9	visual/auditory	audio/500Hz_20s.wav
+1.5	7.1	visual	
+3.5	7.199999999999991	visual	
+0.7	2.6	motor	
+2.4	7.1	visual/auditory	audio/500Hz_20s.wav
+2.4	4.2	visual/auditory	audio/250Hz_20s.wav
+1.5	7.2	motor/auditory	audio/750Hz_20s.wav
+2.4	4.5	visual	
+1.1	7.199999999999991	motor	
+3.5	7.5	motor	
+2.4	4.2	motor	
+1.9	2.8	motor	
+2.4	7.3	motor	
+2.0	4.7	visual/auditory	audio/600Hz_20s.wav
+0.7	4.2	motor/auditory	audio/850Hz_20s.wav
+2.0	7.199999999999991	motor/auditory	audio/850Hz_20s.wav
+1.2	7.199999999999991	visual/auditory	audio/500Hz_20s.wav
+1.9	7.3	visual	
+0.6	7.9	motor	
+1.9	4.2	visual	
+2.5	4.9	motor	
+2.4	4.9	visual	
+1.2	4.7	visual	
+0.7	2.6	visual/auditory	audio/750Hz_20s.wav
+1.2	4.2	motor	
+1.9	7.2	visual/auditory	audio/750Hz_20s.wav
+1.9	4.2	motor/auditory	audio/250Hz_20s.wav
+1.9	7.2	motor	
+3.4	2.5	motor	
+3.2	4.2	motor	
+1.1	7.2	visual	
+2.4	7.5	motor/auditory	audio/250Hz_20s.wav
+3.4	7.1	motor/auditory	audio/750Hz_20s.wav
+0.7	2.5	visual	
+2.4	7.9	visual	
+1.9	2.5	visual/auditory	audio/600Hz_20s.wav
+2.5	7.3	visual/auditory	audio/750Hz_20s.wav
+3.2	4.2	visual/auditory	audio/850Hz_20s.wav
+3.2	7.5	visual	
+0.6	4.2	motor/auditory	audio/850Hz_20s.wav
+2.4	7.1	motor	
+2.0	4.2	visual	
+1.2	7.9	motor/auditory	audio/600Hz_20s.wav
+2.0	4.7	motor	
+1.9	7.3	motor/auditory	audio/600Hz_20s.wav
+3.5	4.5	visual/auditory	audio/500Hz_20s.wav
+1.1	4.9	motor/auditory	audio/250Hz_20s.wav
+3.4	4.2	visual	
+2.4	2.5	motor/auditory	audio/250Hz_20s.wav
+2.4	7.9	visual/auditory	audio/600Hz_20s.wav
+2.5	2.6	visual	
+3.5	4.5	motor/auditory	audio/250Hz_20s.wav
