@@ -94,9 +94,12 @@ def estimation_timing(seed=None):
         c[condition] += 1
 
     trials = [TRIAL_DICT[t] for t in trials]
-    timing_info = np.vstack((durations, itis, trials)).T
-    timing_df = pd.DataFrame(columns=['duration', 'iti', 'trial_type'],
-                             data=timing_info)
+    timing_dict = {
+        'duration': durations,
+        'iti': itis,
+        'trial_type': trial_types,
+    }
+    timing_df = pd.DataFrame(timing_dict)
     return timing_df, seed
 
 
@@ -131,16 +134,13 @@ def determine_timing(ttype, seed=None):
 
 def main():
     subjects = ['Blossom', 'Bubbles', 'Buttercup', 'Pilot', '01', '02', '03']
-    sessions = np.arange(1, 11, dtype=int).astype(str)  # 10
+    sessions = np.arange(1, 14, dtype=int).astype(str)  # 10
     ttypes = ['Detection', 'Estimation']
-    d = {}
     seed = 1
     for sub in subjects:
         print('Compiling subject {0}'.format(sub))
-        d[sub] = {}
         for ses in sessions:
             print('    Compiling session {0}'.format(ses))
-            d[sub][ses] = {}
             for ttype in ttypes:
                 print('\tCompiling {0} task'.format(ttype))
                 print('\t   Updating seed to {0}'.format(seed))

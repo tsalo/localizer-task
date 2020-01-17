@@ -187,6 +187,12 @@ class Checkerboard(object):
 
 
 if __name__ == '__main__':
+    # Ensure that relative paths start from the same directory as this script
+    try:
+        script_dir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
+    except AttributeError:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
     # Collect user input
     # ------------------
     # Remember to turn fullscr to True for the real deal.
@@ -213,8 +219,8 @@ if __name__ == '__main__':
         ser = serial.Serial("COM2", 115200)
 
     base_name = 'sub-{0}_ses-{1}_task-localizer{2}_run-01'.format(
-        exp_info['Subject'].zfill(2),
-        exp_info['Session'].zfill(2),
+        exp_info['Subject'],
+        exp_info['Session'],
         exp_info['Run Type'])
     filename = 'data/{0}_events'.format(base_name)
     logfile = filename + '.log'
@@ -293,26 +299,28 @@ if __name__ == '__main__':
         data_set['trial_type'].append(trial_type)
         task_keys = []
         rest_keys = []
-        if trial_type == 'visual':
-            # flashing checkerboard
-            task_keys, _ = flash_stimuli(window, checkerboards,
-                                         duration=trial_duration, frequency=5)
-            data_set['stim_file'].append('n/a')
-        elif trial_type == 'auditory':
+        if 'auditory' in trial_type:
             stim_file = config_df.loc[trial_num, 'stim_file']
             # tone
             tone_num = _TONE_FILES.index(op.join('stimuli', stim_file))
             tones[tone_num].play()
-            task_keys, _ = draw(win=window, stim=crosshair, duration=trial_duration)
+
+        if 'visual' in trial_type:
+            # flashing checkerboard
+            task_keys, _ = flash_stimuli(window, checkerboards,
+                                         duration=trial_duration, frequency=5)
+        elif 'motor' in trial_type:
+            # finger tapping
+            task_keys, _ = draw(win=window, stim=tapping, duration=trial_duration)
+        else:
+            raise Exception()
+
+        if 'auditory' in trial_type:
             tones[tone_num].stop()
             c += 1
             data_set['stim_file'].append(stim_file)
-        elif trial_type == 'motor':
-            # finger tapping
-            task_keys, _ = draw(win=window, stim=tapping, duration=trial_duration)
-            data_set['stim_file'].append('n/a')
         else:
-            raise Exception()
+            data_set['stim_file'].append('n/a')
 
         # Rest
         rest_keys, _ = draw(win=window, stim=crosshair, duration=rest_duration)
