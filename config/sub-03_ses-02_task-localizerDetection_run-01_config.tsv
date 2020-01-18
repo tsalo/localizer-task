@@ -1,16 +1,17 @@
-duration	iti	trial_type	stimulus
-14.5	14.5	checkerboard	
-14.5	14.5	fingertapping	
-14.5	14.5	fingertapping	
-14.5	14.5	fingertapping	
-14.5	14.5	tone	audio/600Hz_20s.wav
-14.5	14.5	checkerboard	
-14.5	14.5	tone	audio/850Hz_20s.wav
-14.5	14.5	checkerboard	
-14.5	14.5	tone	audio/500Hz_20s.wav
-14.5	14.5	fingertapping	
-14.5	14.5	checkerboard	
-14.5	14.5	checkerboard	
-14.5	14.5	fingertapping	
-14.5	14.5	tone	audio/750Hz_20s.wav
-14.5	14.5	tone	audio/250Hz_20s.wav
+duration	iti	trial_type	stim_file
+14	14	motor	
+14	14	visual/auditory	audio/Jack_The_Lumberer.wav
+14	14	visual	
+14	14	motor/auditory	audio/Cumbish.wav
+14	14	visual/auditory	audio/Ukulele_Song.wav
+14	14	motor/auditory	audio/Breaking_Bollywood.wav
+14	14	visual	
+14	14	motor	
+14	14	motor/auditory	audio/Coy_Koi.wav
+14	14	visual/auditory	audio/Shenzhen_Nightlife.wav
+14	14	motor	
+14	14	visual	
+14	14	motor/auditory	audio/Shenzhen_Nightlife.wav
+14	14	motor	
+14	14	visual/auditory	audio/Bollywood_Groove.wav
+14	14	visual	

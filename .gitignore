@@ -1,6 +1,11 @@
+stimuli/audio/original_files/
+
 .DS_Store
 __pycache__
 *.pyc
 data/
 *.psyexp
 *_old.py
+
+# Jupyter Notebook
+.ipynb_checkpoints

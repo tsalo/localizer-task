@@ -1,43 +1,61 @@
-duration	iti	trial_type	stimulus
-2.95186289505414	7.375031082095548	fingertapping	
-4.073403595147929	4.572174238424612	tone	audio/750Hz_20s.wav
-2.95186289505414	5.23083472645679	tone	audio/850Hz_20s.wav
-4.602705972044742	10.740574422557238	checkerboard	
-2.95186289505414	11.37613363139408	checkerboard	
-3.2719192622800977	11.164978448022108	tone	audio/250Hz_20s.wav
-2.4227065133112	8.416926984232763	tone	audio/850Hz_20s.wav
-3.7597230945736	9.241643491838914	tone	audio/750Hz_20s.wav
-3.2719192622800977	7.375031082095548	checkerboard	
-1.4501534887464902	5.23083472645679	fingertapping	
-2.4227065133112	3.36395639028199	checkerboard	
-2.4227065133112	3.381857938681713	fingertapping	
-1.4920149408277954	3.36395639028199	fingertapping	
-1.4920149408277954	3.381857938681713	tone	audio/600Hz_20s.wav
-1.4920149408277954	9.03918612861705	checkerboard	
-3.2719192622800977	9.241643491838914	fingertapping	
-2.757022210999138	9.03918612861705	tone	audio/500Hz_20s.wav
-4.724742825168261	4.572174238424612	checkerboard	
-4.073403595147929	8.437028408915129	checkerboard	
-1.4501534887464902	3.0192741683851203	tone	audio/500Hz_20s.wav
-2.757022210999138	10.740574422557238	fingertapping	
-4.9932110659418	3.0192741683851203	checkerboard	
-3.860421061039816	8.416926984232763	fingertapping	
-3.8942107428226764	3.0192741683851203	fingertapping	
-4.602705972044742	5.046730133626044	tone	audio/250Hz_20s.wav
-3.860421061039816	3.36395639028199	tone	audio/600Hz_20s.wav
-1.3395721385131996	8.437028408915129	fingertapping	
-3.7597230945736	5.046730133626044	fingertapping	
-4.724742825168261	11.164978448022108	fingertapping	
-4.073403595147929	9.03918612861705	fingertapping	
-1.3395721385131996	5.23083472645679	checkerboard	
-4.602705972044742	4.572174238424612	fingertapping	
-3.8942107428226764	3.381857938681713	checkerboard	
-3.8942107428226764	11.37613363139408	tone	audio/850Hz_20s.wav
-3.860421061039816	11.164978448022108	checkerboard	
-1.4501534887464902	9.241643491838914	checkerboard	
-2.757022210999138	5.046730133626044	checkerboard	
-4.9932110659418	7.375031082095548	tone	audio/250Hz_20s.wav
-4.724742825168261	8.437028408915129	tone	audio/500Hz_20s.wav
-3.7597230945736	8.416926984232763	checkerboard	
-4.9932110659418	11.37613363139408	fingertapping	
-1.3395721385131996	10.740574422557238	tone	audio/750Hz_20s.wav
+duration	iti	trial_type	stim_file
+3.0	3.1	motor	
+1.6	5.1	motor/auditory	audio/Jack_The_Lumberer.wav
+2.3	3.6	visual	
+1.4	6.6	visual/auditory	audio/Improv_for_Evil.wav
+2.5	4.9	motor	
+3.8	4.3	motor/auditory	audio/Funshine.wav
+2.3	5.6	visual/auditory	audio/Jack_The_Lumberer.wav
+1.5	4.6	visual	
+1.0	2.9	motor	
+3.4	4.1	visual/auditory	audio/Shenzhen_Nightlife.wav
+1.9	3.8	motor/auditory	audio/Improv_for_Evil.wav
+3.3	4.8	visual	
+3.9	8.0	visual/auditory	audio/Breaking_Bollywood.wav
+3.5	5.1	motor	
+3.3	3.9	visual	
+3.0	5.0	motor/auditory	audio/Le_Baguette.wav
+3.5	6.5	motor	
+3.9	3.2	visual	
+3.4	5.1	visual/auditory	audio/Desert_Conflict.wav
+1.3	4.3	motor/auditory	audio/Le_Baguette.wav
+1.7	3.5	visual	
+2.7	7.0	visual/auditory	audio/Stereotype_News.wav
+2.6	4.0	motor	
+0.9	4.4	motor/auditory	audio/Breaking_Bollywood.wav
+3.8	3.0	visual/auditory	audio/Coy_Koi.wav
+3.1	4.1	motor/auditory	audio/Cumbish.wav
+2.7	3.3	visual	
+3.1	4.9	motor	
+1.4	4.7	visual	
+3.3	4.3	motor	
+4.0	4.9	visual/auditory	audio/Jack_The_Lumberer.wav
+2.7	2.6	motor/auditory	audio/Ambush_in_Rattlesnake_Gulch.wav
+3.5	3.7	visual/auditory	audio/Coy_Koi.wav
+3.0	4.5	motor	
+2.7	3.4	visual	
+3.9	3.7	motor/auditory	audio/Ukulele_Song.wav
+2.1	3.3	visual/auditory	audio/Funshine.wav
+1.8	4.4	visual	
+0.8	3.4	motor/auditory	audio/Ambush_in_Rattlesnake_Gulch.wav
+2.6	4.9	motor	
+3.8	3.1	visual/auditory	audio/Cumbish.wav
+2.0	4.3	motor	
+2.3	4.5	visual	
+1.4	4.0	motor/auditory	audio/Improv_for_Evil.wav
+1.7	4.3	visual/auditory	audio/Bleu.wav
+2.8	4.3	motor	
+2.1	7.1	motor/auditory	audio/Bollywood_Groove.wav
+3.9	4.6	visual	
+2.4	4.7	motor	
+2.4	5.4	visual	
+2.3	5.5	visual/auditory	audio/Ukulele_Song.wav
+1.1	6.1	motor/auditory	audio/Stereotype_News.wav
+3.3	5.1	visual	
+0.9	4.5	motor/auditory	audio/Shenzhen_Nightlife.wav
+3.8	4.4	visual/auditory	audio/Bollywood_Groove.wav
+1.8	5.8	motor	
+2.9	6.3	visual	
+2.4	4.7	motor	
+1.6	5.6	visual/auditory	audio/Stereotype_News.wav
+3.5	12.6	motor/auditory	audio/Ukulele_Song.wav
