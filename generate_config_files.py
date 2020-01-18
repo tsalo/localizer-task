@@ -56,9 +56,9 @@ DUR_RANGE = (0.5, 4)  # avg of 3s
 ITI_RANGE = (2, 8)  # max determined to minimize difference from TASK_TIME
 # General
 TASK_TIME = 438  # time for trials in task
-START_DUR = 6  # fixation before trials
+LEAD_IN_DURATION = 6  # fixation before trials
 END_DUR = 6  # fixation after trials
-# total time = TASK_TIME + START_DUR + END_DUR = 450 = 7.5 mins
+# total time = TASK_TIME + LEAD_IN_DURATION + END_DUR = 450 = 7.5 mins
 
 
 def randomize_carefully(elems, n_repeat=2):
@@ -117,7 +117,7 @@ def estimation_timing(seed=None):
         seed = np.random.randint(1000, 9999)
 
     while (not np.isclose(missing_time, 0.0, atol=10)) or (missing_time < 0):
-        state = np.random.RandomState()
+        state = np.random.RandomState(seed=seed)
         durations = state.uniform(DUR_RANGE[0], DUR_RANGE[1], N_TRIALS_TOTAL)
         durations = np.round(durations, 1)
 

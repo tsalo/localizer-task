@@ -35,9 +35,9 @@ TRIAL_DICT = {1: 'visual',
               3: 'motor',
               4: 'motor/auditory'}
 TASK_TIME = 438  # time for trials in task
-START_DUR = 6  # fixation before trials
+LEAD_IN_DURATION = 6  # fixation before trials
 END_DUR = 6  # fixation after trials
-TOTAL_TIME = TASK_TIME + START_DUR + END_DUR  # = 450 = 7.5 mins
+TOTAL_TIME = TASK_TIME + LEAD_IN_DURATION + END_DUR  # = 450 = 7.5 mins
 
 
 def close_on_esc(win):
@@ -179,9 +179,9 @@ class Checkerboard(object):
 if __name__ == '__main__':
     # Ensure that relative paths start from the same directory as this script
     try:
-        script_dir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
+        script_dir = op.dirname(op.abspath(__file__)).decode(sys.getfilesystemencoding())
     except AttributeError:
-        script_dir = os.path.dirname(os.path.abspath(__file__))
+        script_dir = op.dirname(op.abspath(__file__))
 
     # Collect user input
     # ------------------
@@ -212,7 +212,7 @@ if __name__ == '__main__':
         exp_info['Subject'],
         exp_info['Session'],
         exp_info['Run Type'])
-    filename = 'data/{0}_events'.format(base_name)
+    filename = op.join(script_dir, 'data/{0}_events'.format(base_name))
     logfile = filename + '.log'
     outfile = filename + '.tsv'
     if op.exists(outfile) and 'Pilot' not in outfile:
@@ -220,13 +220,13 @@ if __name__ == '__main__':
 
     # Initialize stimuli
     # ------------------
-    config_file = 'config/{0}_config.tsv'.format(base_name)
+    config_file = op.join(script_dir, 'config/{0}_config.tsv'.format(base_name))
     config_df = pd.read_table(config_file)
     # Checkerboards
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
     # Tones
     audio_files = sorted(config_df['stim_file'].dropna().unique())
-    audio_stimuli = [sound.Sound(op.join('stimuli', tf)) for tf in audio_files]
+    audio_stimuli = [sound.Sound(op.join(script_dir, 'stimuli', tf)) for tf in audio_files]
     # Finger tapping instructions
     tapping = visual.TextStim(
         window,
@@ -259,6 +259,7 @@ if __name__ == '__main__':
     # Wait for trigger from scanner.
     if exp_info['BioPac'] == 'Yes':
         ser.write('RR')
+
     waiting.draw()
     window.flip()
     event.waitKeys(keyList=['5'])
@@ -277,7 +278,7 @@ if __name__ == '__main__':
     psychopy.logging.console.setLevel(psychopy.logging.DATA)
 
     # Start with six seconds of rest
-    draw(win=window, stim=crosshair, duration=START_DUR)
+    draw(win=window, stim=crosshair, duration=LEAD_IN_DURATION)
 
     c = 0  # trial counter
     for trial_num in config_df.index:
