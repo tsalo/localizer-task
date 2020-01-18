@@ -1,0 +1,61 @@
+duration	iti	trial_type	stim_file
+0.7	6.6	visual	
+2.7	7.6	motor/auditory	audio/Funshine.wav
+0.7	4.7	motor	
+2.2	5.6	visual	
+1.0	2.4	visual/auditory	audio/Shenzhen_Nightlife.wav
+3.1	4.8	visual	
+3.8	6.6	motor/auditory	audio/Jack_The_Lumberer.wav
+2.4	5.6	visual/auditory	audio/Ukulele_Song.wav
+3.4	7.6	motor	
+3.8	4.4	visual	
+3.4	2.2	visual/auditory	audio/Jack_The_Lumberer.wav
+3.1	5.6	motor/auditory	audio/Ukulele_Song.wav
+2.4	5.6	motor	
+2.5	2.2	motor/auditory	audio/Stereotype_News.wav
+2.2	4.7	visual	
+3.1	4.4	visual/auditory	audio/Cumbish.wav
+1.0	3.7	visual	
+0.7	7.5	visual/auditory	audio/Shenzhen_Nightlife.wav
+2.7	3.7	visual/auditory	audio/Shenzhen_Nightlife.wav
+3.1	7.6	visual/auditory	audio/Ukulele_Song.wav
+2.3	4.6	visual	
+2.2	3.7	motor/auditory	audio/Coy_Koi.wav
+2.4	6.8	motor	
+0.7	4.7	motor/auditory	audio/Le_Baguette.wav
+2.2	7.5	motor/auditory	audio/Improv_for_Evil.wav
+2.5	2.4	visual	
+2.4	3.7	motor/auditory	audio/Desert_Conflict.wav
+2.3	6.6	visual/auditory	audio/Desert_Conflict.wav
+3.1	2.4	motor	
+1.0	4.4	motor/auditory	audio/Bleu.wav
+3.8	4.7	motor	
+1.0	3.7	motor	
+2.4	3.7	visual	
+3.4	4.1	motor/auditory	audio/Jack_The_Lumberer.wav
+2.2	3.7	visual/auditory	audio/Cumbish.wav
+3.1	7.5	visual	
+2.7	7.6	visual	
+3.8	4.8	motor	
+3.1	4.7	motor/auditory	audio/Stereotype_News.wav
+3.1	7.5	motor	
+0.5	4.7	visual/auditory	audio/Improv_for_Evil.wav
+3.8	2.4	motor/auditory	audio/Ambush_in_Rattlesnake_Gulch.wav
+0.5	6.8	motor/auditory	audio/Breaking_Bollywood.wav
+2.4	4.8	motor/auditory	audio/Ambush_in_Rattlesnake_Gulch.wav
+2.3	4.6	motor/auditory	audio/Desert_Conflict.wav
+2.5	4.8	visual/auditory	audio/Bleu.wav
+2.3	4.4	motor	
+2.2	4.1	visual/auditory	audio/Bollywood_Groove.wav
+2.4	4.1	visual	
+2.2	2.2	motor	
+2.4	4.6	visual/auditory	audio/Bollywood_Groove.wav
+2.7	6.6	motor	
+2.2	4.6	motor	
+3.4	6.8	visual	
+3.8	2.2	visual	
+3.8	4.7	visual/auditory	audio/Improv_for_Evil.wav
+2.5	3.7	motor	
+0.5	4.7	visual	
+0.5	4.1	motor	
+3.8	6.8	visual/auditory	audio/Funshine.wav

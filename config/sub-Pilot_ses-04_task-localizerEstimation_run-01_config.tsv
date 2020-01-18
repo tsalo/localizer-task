@@ -1,61 +1,61 @@
 duration	iti	trial_type	stim_file
-1.6	7.0	visual/auditory	audio/500Hz_20s.wav
-0.8	7.0	motor/auditory	audio/250Hz_20s.wav
-3.5	5.6	motor/auditory	audio/250Hz_20s.wav
-3.2	3.9	visual	
-0.8	6.7	visual/auditory	audio/600Hz_20s.wav
-2.2	3.4	motor/auditory	audio/500Hz_20s.wav
-3.4	5.0	motor/auditory	audio/600Hz_20s.wav
-1.2	5.0	visual	
-1.4	5.6	motor	
-1.7	5.6	visual/auditory	audio/250Hz_20s.wav
-1.6	6.7	motor/auditory	audio/850Hz_20s.wav
-3.0	7.7	visual/auditory	audio/600Hz_20s.wav
-2.8	2.4	visual/auditory	audio/500Hz_20s.wav
-2.8	6.7	visual	
-1.4	8.0	motor/auditory	audio/750Hz_20s.wav
-0.8	3.4	visual	
-1.6	7.5	motor/auditory	audio/600Hz_20s.wav
-1.7	4.499999999999991	motor	
-1.2	7.7	motor	
-3.4	8.0	motor	
-1.6	6.7	visual	
-3.0	3.3	visual	
-2.6	4.5	visual/auditory	audio/600Hz_20s.wav
-2.2	2.3	motor	
-3.5	3.9	visual/auditory	audio/850Hz_20s.wav
-3.4	7.5	visual	
-3.2	3.4	visual/auditory	audio/850Hz_20s.wav
-0.8	6.7	motor	
-3.2	2.3	motor/auditory	audio/750Hz_20s.wav
-0.8	8.0	visual/auditory	audio/500Hz_20s.wav
-1.7	5.6	visual	
-0.8	3.3	motor/auditory	audio/250Hz_20s.wav
-1.6	2.4	motor	
-3.0	3.9	motor	
-0.8	2.3	visual	
-2.6	7.7	motor/auditory	audio/850Hz_20s.wav
-2.6	4.5	motor	
+1.5	2.1	visual	
+3.6	3.3	motor/auditory	audio/Shenzhen_Nightlife.wav
+1.9	2.1	motor	
+3.4	3.3	visual	
+1.6	2.1	motor/auditory	audio/Le_Baguette.wav
 1.6	3.3	motor	
-1.6	7.7	visual	
-2.8	4.5	motor/auditory	audio/250Hz_20s.wav
-1.7	3.9	motor/auditory	audio/500Hz_20s.wav
-3.5	7.5	motor	
-3.5	8.0	visual	
-2.2	4.499999999999991	visual	
-1.2	2.3	visual/auditory	audio/750Hz_20s.wav
-1.2	2.4	motor/auditory	audio/250Hz_20s.wav
-1.2	5.0	visual/auditory	audio/500Hz_20s.wav
-2.6	7.0	visual	
-1.4	4.499999999999991	visual/auditory	audio/600Hz_20s.wav
-3.2	5.0	motor	
-3.4	3.3	visual/auditory	audio/850Hz_20s.wav
-0.8	3.4	motor	
-2.8	7.0	motor	
-1.2	6.7	motor	
-3.0	6.7	motor/auditory	audio/750Hz_20s.wav
-1.2	4.5	visual	
-2.2	7.5	visual/auditory	audio/850Hz_20s.wav
-1.4	2.4	visual	
-1.2	4.499999999999991	motor/auditory	audio/750Hz_20s.wav
-1.6	6.7	visual/auditory	audio/750Hz_20s.wav
+2.3	2.4	motor	
+1.4	5.1	visual	
+3.4	3.2	visual/auditory	audio/Shenzhen_Nightlife.wav
+2.4	6.1	motor	
+3.2	8.1	motor	
+3.1	3.3	visual/auditory	audio/Desert_Conflict.wav
+3.1	2.1	visual/auditory	audio/Bleu.wav
+3.4	5.2	motor/auditory	audio/Ambush_in_Rattlesnake_Gulch.wav
+2.3	2.4	visual	
+2.4	8.1	visual/auditory	audio/Le_Baguette.wav
+0.7	6.9	motor	
+2.9	6.9	visual	
+1.9	4.0	visual/auditory	audio/Breaking_Bollywood.wav
+1.5	5.5	motor/auditory	audio/Breaking_Bollywood.wav
+1.6	5.1	visual/auditory	audio/Bollywood_Groove.wav
+1.4	4.6	visual/auditory	audio/Jack_The_Lumberer.wav
+1.4	3.3	motor	
+3.1	6.1	visual/auditory	audio/Bleu.wav
+2.9	5.1	motor	
+3.2	2.4	visual/auditory	audio/Le_Baguette.wav
+3.4	4.0	motor	
+1.5	5.5	visual/auditory	audio/Bollywood_Groove.wav
+1.5	4.6	motor	
+2.9	6.9	visual/auditory	audio/Cumbish.wav
+3.6	5.2	visual/auditory	audio/Funshine.wav
+2.9	8.1	motor/auditory	audio/Stereotype_News.wav
+3.1	3.2	visual	
+3.6	3.2	motor	
+3.1	3.3	motor/auditory	audio/Ambush_in_Rattlesnake_Gulch.wav
+2.3	2.4	motor/auditory	audio/Breaking_Bollywood.wav
+3.1	6.3	motor/auditory	audio/Ukulele_Song.wav
+3.2	5.1	motor/auditory	audio/Coy_Koi.wav
+1.9	4.0	motor/auditory	audio/Improv_for_Evil.wav
+2.6	6.6	visual/auditory	audio/Bleu.wav
+0.7	3.3	visual/auditory	audio/Ambush_in_Rattlesnake_Gulch.wav
+2.6	3.2	motor/auditory	audio/Jack_The_Lumberer.wav
+2.3	6.3	visual/auditory	audio/Stereotype_News.wav
+3.1	4.0	visual	
+0.7	6.1	visual	
+2.4	5.5	visual	
+3.1	6.1	motor/auditory	audio/Funshine.wav
+3.1	6.6	motor	
+1.6	4.6	visual	
+3.6	6.6	visual	
+2.4	4.6	motor/auditory	audio/Stereotype_News.wav
+3.2	5.2	visual	
+3.1	3.3	visual	
+3.1	6.3	motor	
+0.7	6.6	motor/auditory	audio/Bollywood_Groove.wav
+3.1	5.2	motor	
+1.9	8.1	visual	
+2.6	5.5	motor	
+2.6	6.3	visual	
+1.4	6.9	motor/auditory	audio/Ukulele_Song.wav

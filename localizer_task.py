@@ -4,7 +4,7 @@ Slow event-related design for HRF estimation for M1, V1, and A1.
 Single-run task that includes the following conditions:
 - flashing checkerboard
 - finger tapping
-- listening to tones/music
+- listening to audio_stimuli/music
 
 Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
@@ -30,16 +30,6 @@ _TAPPING_INSTRUCTIONS = """\
 Tap your fingers as
 quickly as possible!
 """
-
-# These tracks are 20 seconds long.
-# 10s versions created by
-# https://www.audiocheck.net/audiofrequencysignalgenerator_sinetone.php
-# Durations doubled with Audacity.
-_TONE_FILES = ['stimuli/audio/250Hz_20s.wav',
-               'stimuli/audio/500Hz_20s.wav',
-               'stimuli/audio/600Hz_20s.wav',
-               'stimuli/audio/750Hz_20s.wav',
-               'stimuli/audio/850Hz_20s.wav']
 TRIAL_DICT = {1: 'visual',
               2: 'visual/auditory',
               3: 'motor',
@@ -216,7 +206,7 @@ if __name__ == '__main__':
         core.quit()
 
     if exp_info['BioPac'] == 'Yes':
-        ser = serial.Serial("COM2", 115200)
+        ser = serial.Serial('COM2', 115200)
 
     base_name = 'sub-{0}_ses-{1}_task-localizer{2}_run-01'.format(
         exp_info['Subject'],
@@ -231,11 +221,12 @@ if __name__ == '__main__':
     # Initialize stimuli
     # ------------------
     config_file = 'config/{0}_config.tsv'.format(base_name)
-    config_df = pd.read_csv(config_file, sep='\t')
+    config_df = pd.read_table(config_file)
     # Checkerboards
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
     # Tones
-    tones = [sound.Sound(tf) for tf in _TONE_FILES]
+    audio_files = sorted(config_df['stim_file'].dropna().unique())
+    audio_stimuli = [sound.Sound(op.join('stimuli', tf)) for tf in audio_files]
     # Finger tapping instructions
     tapping = visual.TextStim(
         window,
@@ -254,12 +245,12 @@ if __name__ == '__main__':
     # Waiting for scanner
     waiting = visual.TextStim(
         window,
-        "Waiting for scanner...",
+        'Waiting for scanner...',
         name='waiting',
         color='white')
     end_screen = visual.TextStim(
         window,
-        "The task is now complete.",
+        'The task is now complete.',
         name='end_screen',
         color='white')
 
@@ -267,12 +258,12 @@ if __name__ == '__main__':
     # ---------------
     # Wait for trigger from scanner.
     if exp_info['BioPac'] == 'Yes':
-        ser.write("RR")
+        ser.write('RR')
     waiting.draw()
     window.flip()
     event.waitKeys(keyList=['5'])
     if exp_info['BioPac'] == 'Yes':
-        ser.write("FF")
+        ser.write('FF')
 
     startTime = datetime.now()
     routine_clock = core.Clock()
@@ -301,9 +292,9 @@ if __name__ == '__main__':
         rest_keys = []
         if 'auditory' in trial_type:
             stim_file = config_df.loc[trial_num, 'stim_file']
-            # tone
-            tone_num = _TONE_FILES.index(op.join('stimuli', stim_file))
-            tones[tone_num].play()
+            # audio
+            audio_number = audio_files.index(stim_file)
+            audio_stimuli[audio_number].play()
 
         if 'visual' in trial_type:
             # flashing checkerboard
@@ -316,7 +307,7 @@ if __name__ == '__main__':
             raise Exception()
 
         if 'auditory' in trial_type:
-            tones[tone_num].stop()
+            audio_stimuli[audio_number].stop()
             c += 1
             data_set['stim_file'].append(stim_file)
         else:
@@ -353,8 +344,8 @@ if __name__ == '__main__':
     draw(win=window, stim=end_screen, duration=2)
     window.flip()
     if exp_info['BioPac'] == 'Yes':
-        ser.write("00")
+        ser.write('00')
         ser.close()
 
-    del(checkerboards, tones, tapping, crosshair, waiting, end_screen)
+    del(checkerboards, audio_stimuli, tapping, crosshair, waiting, end_screen)
     window.close()

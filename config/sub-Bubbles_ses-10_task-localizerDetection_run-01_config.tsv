@@ -1,17 +1,17 @@
 duration	iti	trial_type	stim_file
-14.5	14.5	motor/auditory	audio/600Hz_20s.wav
-14.5	14.5	visual/auditory	audio/500Hz_20s.wav
-14.5	14.5	motor/auditory	audio/750Hz_20s.wav
-14.5	14.5	motor	
-14.5	14.5	motor	
-14.5	14.5	visual/auditory	audio/850Hz_20s.wav
-14.5	14.5	motor/auditory	audio/750Hz_20s.wav
 14.5	14.5	visual	
 14.5	14.5	visual	
 14.5	14.5	visual	
-14.5	14.5	visual/auditory	audio/850Hz_20s.wav
-14.5	14.5	motor	
-14.5	14.5	visual/auditory	audio/600Hz_20s.wav
-14.5	14.5	motor	
-14.5	14.5	motor/auditory	audio/600Hz_20s.wav
+14.5	14.5	visual/auditory	audio/Shenzhen_Nightlife.wav
+14.5	14.5	visual/auditory	audio/Improv_for_Evil.wav
+14.5	14.5	visual/auditory	audio/Bleu.wav
+14.5	14.5	motor/auditory	audio/Improv_for_Evil.wav
 14.5	14.5	visual	
+14.5	14.5	motor/auditory	audio/Ukulele_Song.wav
+14.5	14.5	visual/auditory	audio/Coy_Koi.wav
+14.5	14.5	motor/auditory	audio/Ukulele_Song.wav
+14.5	14.5	motor/auditory	audio/Jack_The_Lumberer.wav
+14.5	14.5	motor	
+14.5	14.5	motor	
+14.5	14.5	motor	
+14.5	14.5	motor	

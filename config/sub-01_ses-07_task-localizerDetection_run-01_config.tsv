@@ -1,17 +1,17 @@
 duration	iti	trial_type	stim_file
-14.5	14.5	motor/auditory	audio/500Hz_20s.wav
-14.5	14.5	visual	
-14.5	14.5	visual/auditory	audio/850Hz_20s.wav
 14.5	14.5	motor	
-14.5	14.5	visual/auditory	audio/250Hz_20s.wav
-14.5	14.5	motor/auditory	audio/850Hz_20s.wav
-14.5	14.5	motor/auditory	audio/500Hz_20s.wav
-14.5	14.5	motor/auditory	audio/750Hz_20s.wav
-14.5	14.5	visual/auditory	audio/250Hz_20s.wav
 14.5	14.5	visual	
-14.5	14.5	visual/auditory	audio/750Hz_20s.wav
-14.5	14.5	motor	
+14.5	14.5	visual/auditory	audio/Breaking_Bollywood.wav
+14.5	14.5	motor/auditory	audio/Breaking_Bollywood.wav
 14.5	14.5	motor	
 14.5	14.5	motor	
 14.5	14.5	visual	
+14.5	14.5	visual/auditory	audio/Shenzhen_Nightlife.wav
+14.5	14.5	motor/auditory	audio/Le_Baguette.wav
+14.5	14.5	motor/auditory	audio/Breaking_Bollywood.wav
 14.5	14.5	visual	
+14.5	14.5	visual	
+14.5	14.5	visual/auditory	audio/Ukulele_Song.wav
+14.5	14.5	motor/auditory	audio/Funshine.wav
+14.5	14.5	visual/auditory	audio/Improv_for_Evil.wav
+14.5	14.5	motor	

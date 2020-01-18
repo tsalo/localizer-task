@@ -17,11 +17,30 @@ import pandas as pd
 # 10s versions created by
 # https://www.audiocheck.net/audiofrequencysignalgenerator_sinetone.php
 # Durations doubled with Audacity.
-_TONE_FILES = ['audio/250Hz_20s.wav',
-               'audio/500Hz_20s.wav',
-               'audio/600Hz_20s.wav',
-               'audio/750Hz_20s.wav',
-               'audio/850Hz_20s.wav']
+old_files = [
+    'audio/250Hz_20s.wav',
+    'audio/500Hz_20s.wav',
+    'audio/600Hz_20s.wav',
+    'audio/750Hz_20s.wav',
+    'audio/850Hz_20s.wav']
+
+# These tracks come from freepd.com and were converted from mp3 to wav
+# Some files have been shortened to reduce low-volume intros
+_AUDIO_FILES = [
+    'audio/Ambush_in_Rattlesnake_Gulch.wav',
+    'audio/Bleu.wav',
+    'audio/Bollywood_Groove.wav',
+    'audio/Breaking_Bollywood.wav',
+    'audio/Coy_Koi.wav',
+    'audio/Cumbish.wav',
+    'audio/Desert_Conflict.wav',
+    'audio/Funshine.wav',
+    'audio/Improv_for_Evil.wav',  # starts at 4s
+    'audio/Jack_The_Lumberer.wav',  # starts at 2.5s
+    'audio/Le_Baguette.wav',  # starts at 1s
+    'audio/Shenzhen_Nightlife.wav',
+    'audio/Stereotype_News.wav',  # starts at 1.5s
+    'audio/Ukulele_Song.wav']
 TRIAL_DICT = {1: 'visual',
               2: 'visual/auditory',
               3: 'motor',
@@ -93,7 +112,7 @@ def estimation_timing(seed=None):
         itis.append(all_cond_trial_itis[condition-1][c[condition]])
         c[condition] += 1
 
-    trials = [TRIAL_DICT[t] for t in trials]
+    trial_types = [TRIAL_DICT[t] for t in trials]
     timing_dict = {
         'duration': durations,
         'iti': itis,
@@ -108,12 +127,12 @@ def determine_timing(ttype, seed=None):
         raise Exception()
 
     n_audio_trials = N_TRIALS * len([k for k in TRIAL_DICT.values() if 'auditory' in k])
-    n_tones = len(_TONE_FILES)
-    n_repeats = int(np.ceil(n_audio_trials / n_tones))
-    tone_nums = np.arange(n_tones)
-    tone_nums = np.repeat(tone_nums, n_repeats)
-    np.random.shuffle(tone_nums)  # pylint: disable=E1101
-    tone_files = [_TONE_FILES[tn] for tn in tone_nums]
+    n_audio_stimuli = len(_AUDIO_FILES)
+    n_repeats = int(np.ceil(n_audio_trials / n_audio_stimuli))
+    audio_numbers = np.arange(n_audio_stimuli)
+    audio_numbers = np.repeat(audio_numbers, n_repeats)
+    np.random.shuffle(audio_numbers)  # pylint: disable=E1101
+    audio_files = [_AUDIO_FILES[tn] for tn in audio_numbers]
 
     # set order of trials
     if ttype == 'Estimation':
@@ -125,7 +144,7 @@ def determine_timing(ttype, seed=None):
     c = 0
     for trial in timing_df.index:
         if 'auditory' in timing_df.loc[trial, 'trial_type']:
-            timing_df.loc[trial, 'stim_file'] = tone_files[c]
+            timing_df.loc[trial, 'stim_file'] = audio_files[c]
             c += 1
         else:
             timing_df.loc[trial, 'stim_file'] = None
@@ -148,7 +167,7 @@ def main():
 
                 df.to_csv('config/sub-{0}_ses-{1}_task-localizer{2}_run-01_'
                           'config.tsv'.format(sub.zfill(2), ses.zfill(2), ttype),
-                          sep='\t', index=False)
+                          sep='\t', index=False, float_format='%.1f')
 
 
 if __name__ == '__main__':

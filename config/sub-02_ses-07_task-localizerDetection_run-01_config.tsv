@@ -1,17 +1,17 @@
 duration	iti	trial_type	stim_file
+14.5	14.5	visual/auditory	audio/Bollywood_Groove.wav
 14.5	14.5	motor	
-14.5	14.5	visual/auditory	audio/600Hz_20s.wav
+14.5	14.5	motor/auditory	audio/Desert_Conflict.wav
+14.5	14.5	motor/auditory	audio/Breaking_Bollywood.wav
+14.5	14.5	visual	
+14.5	14.5	visual	
+14.5	14.5	visual	
+14.5	14.5	motor	
+14.5	14.5	visual/auditory	audio/Ukulele_Song.wav
+14.5	14.5	motor	
 14.5	14.5	motor	
 14.5	14.5	visual	
-14.5	14.5	motor/auditory	audio/750Hz_20s.wav
-14.5	14.5	motor/auditory	audio/600Hz_20s.wav
-14.5	14.5	motor	
-14.5	14.5	visual	
-14.5	14.5	visual/auditory	audio/750Hz_20s.wav
-14.5	14.5	visual	
-14.5	14.5	visual/auditory	audio/500Hz_20s.wav
-14.5	14.5	visual/auditory	audio/850Hz_20s.wav
-14.5	14.5	motor	
-14.5	14.5	motor/auditory	audio/750Hz_20s.wav
-14.5	14.5	visual	
-14.5	14.5	motor/auditory	audio/850Hz_20s.wav
+14.5	14.5	motor/auditory	audio/Bleu.wav
+14.5	14.5	motor/auditory	audio/Ambush_in_Rattlesnake_Gulch.wav
+14.5	14.5	visual/auditory	audio/Stereotype_News.wav
+14.5	14.5	visual/auditory	audio/Breaking_Bollywood.wav
