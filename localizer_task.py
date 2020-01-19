@@ -334,6 +334,10 @@ if __name__ == '__main__':
             data_set['tap_duration'].append(np.nan)
         data_set['tap_count'].append((len(task_keys) + len(rest_keys)))
         data_set['duration'].append(trial_duration)
+
+        # Save updated output file
+        out_frame = pd.DataFrame(data_set, columns=COLUMNS)
+        out_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a', index=False)
         psychopy.logging.flush()
 
     # End with six seconds of rest. Scanner should stop after this.
