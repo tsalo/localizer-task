@@ -314,7 +314,13 @@ if __name__ == '__main__':
         else:
             data_set['stim_file'].append('n/a')
 
+        data_set['duration'].append(trials_clock.getTime())
+
         # Rest
+        # For last trial, update fixation
+        if trial_num == config_df.index.values[-1]:
+            rest_duration = (TOTAL_TIME - routine_clock.getTime()) - END_DUR
+
         rest_keys, _ = draw(win=window, stim=crosshair, duration=rest_duration)
         if task_keys and rest_keys:
             data_set['response_time'].append(task_keys[0][1])
@@ -329,24 +335,30 @@ if __name__ == '__main__':
             data_set['response_time'].append(np.nan)
             data_set['tap_duration'].append(np.nan)
         data_set['tap_count'].append((len(task_keys) + len(rest_keys)))
-        data_set['duration'].append(trial_duration)
+
+        # Save updated output file
+        out_frame = pd.DataFrame(data_set, columns=COLUMNS)
+        out_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a', index=False)
         psychopy.logging.flush()
 
-    # End with six seconds of rest
+    # End with six seconds of rest. Scanner should stop after this.
     duration = datetime.now() - startTime
     new_end_dur = TOTAL_TIME - duration.total_seconds()
     draw(win=window, stim=crosshair, duration=new_end_dur)
     duration = datetime.now() - startTime
+    print('Total run duration: {}'.format(duration))
 
     # Compile file
     out_frame = pd.DataFrame(data_set, columns=COLUMNS)
     out_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a', index=False)
 
-    draw(win=window, stim=end_screen, duration=2)
-    window.flip()
     if exp_info['BioPac'] == 'Yes':
         ser.write('00')
         ser.close()
+
+    # Scanner is off for this
+    draw(win=window, stim=end_screen, duration=2)
+    window.flip()
 
     del(checkerboards, audio_stimuli, tapping, crosshair, waiting, end_screen)
     window.close()
