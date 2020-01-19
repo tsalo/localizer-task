@@ -314,6 +314,8 @@ if __name__ == '__main__':
         else:
             data_set['stim_file'].append('n/a')
 
+        data_set['duration'].append(trials_clock.getTime())
+
         # Rest
         # For last trial, update fixation
         if trial_num == config_df.index.values[-1]:
@@ -333,7 +335,6 @@ if __name__ == '__main__':
             data_set['response_time'].append(np.nan)
             data_set['tap_duration'].append(np.nan)
         data_set['tap_count'].append((len(task_keys) + len(rest_keys)))
-        data_set['duration'].append(trial_duration)
 
         # Save updated output file
         out_frame = pd.DataFrame(data_set, columns=COLUMNS)
