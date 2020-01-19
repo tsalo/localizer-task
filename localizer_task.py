@@ -9,35 +9,30 @@ Single-run task that includes the following conditions:
 Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
 
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 import time
 import os
 import os.path as op
 from glob import glob
-from datetime import datetime
 
 import serial
 import numpy as np
 import pandas as pd
 
 import psychopy
-from psychopy import core, event, gui, visual, sound
+from psychopy import core, event, gui, visual, sound, logging
 from psychopy.constants import STARTED, STOPPED  # pylint: disable=E0401
 psychopy.prefs.general['audioLib'] = ['sounddevice', 'pygame']
 # psychopy.prefs.general['audioDevice'] = ['Built-in Output']
 
-_TAPPING_INSTRUCTIONS = """\
-Tap your fingers as
-quickly as possible!
-"""
+# Constants
 TRIAL_DICT = {1: 'visual',
               2: 'visual/auditory',
               3: 'motor',
               4: 'motor/auditory'}
-TASK_TIME = 438  # time for trials in task
+RUN_DURATION = 450  # time for trials in task
 LEAD_IN_DURATION = 6  # fixation before trials
-END_DUR = 6  # fixation after trials
-TOTAL_TIME = TASK_TIME + LEAD_IN_DURATION + END_DUR  # = 450 = 7.5 mins
+END_SCREEN_DURATION = 2
 
 
 def close_on_esc(win):
@@ -76,7 +71,7 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
     event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
         keys = event.getKeys(keyList=['1', '2'],
-                             timeStamped=trials_clock)
+                             timeStamped=trial_clock)
         if keys:
             response.keys.extend(keys)
             response.rt.append(response.clock.getTime())
@@ -85,7 +80,7 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
             this_stim = stimuli[counter % n_stim]
             win.flip()
             keys = event.getKeys(keyList=['1', '2'],
-                                 timeStamped=trials_clock)
+                                 timeStamped=trial_clock)
             if keys:
                 response.keys.extend(keys)
                 response.rt.append(response.clock.getTime())
@@ -97,7 +92,7 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
     return response.keys, response.rt
 
 
-def draw(win, stim, duration):
+def draw(win, stim, duration, clock):
     """
     Draw stimulus for a given duration.
 
@@ -118,8 +113,7 @@ def draw(win, stim, duration):
     event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
         stim.draw()
-        keys = event.getKeys(keyList=['1', '2'],
-                             timeStamped=trials_clock)
+        keys = event.getKeys(keyList=['1', '2'], timeStamped=clock)
         if keys:
             response.keys.extend(keys)
             response.rt.append(response.clock.getTime())
@@ -199,9 +193,16 @@ if __name__ == '__main__':
         title='Localization task',
         order=['Subject', 'Session', 'Run Type', 'BioPac'])
     window = visual.Window(
-        # size=(800, 600), fullscr=True, monitor='testMonitor', units='deg',
-        size=(500, 400), fullscr=False, monitor='testMonitor', units='deg',
-        allowStencil=False, allowGUI=False, color='black')
+        fullscr=False,
+        size=(800, 600),
+        monitor='testMonitor',
+        units='deg',
+        allowStencil=False,
+        allowGUI=False,
+        color='black',
+        colorSpace='rgb',
+        blendMode='avg',
+        useFBO=True)
     if not dlg.OK:
         core.quit()
 
@@ -213,15 +214,17 @@ if __name__ == '__main__':
         exp_info['Session'],
         exp_info['Run Type'])
     filename = op.join(script_dir, 'data/{0}_events'.format(base_name))
-    logfile = filename + '.log'
+    logfile = logging.LogFile(filename + '.log', level=logging.EXP)
+    logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
+
     outfile = filename + '.tsv'
     if op.exists(outfile) and 'Pilot' not in outfile:
         raise ValueError('Output file already exists.')
+    config_file = op.join(script_dir, 'config/{0}_config.tsv'.format(base_name))
+    config_df = pd.read_table(config_file)
 
     # Initialize stimuli
     # ------------------
-    config_file = op.join(script_dir, 'config/{0}_config.tsv'.format(base_name))
-    config_df = pd.read_table(config_file)
     # Checkerboards
     checkerboards = (Checkerboard(window), Checkerboard(window, inverted=True))
     # Tones
@@ -229,30 +232,59 @@ if __name__ == '__main__':
     audio_stimuli = [sound.Sound(op.join(script_dir, 'stimuli', tf)) for tf in audio_files]
     # Finger tapping instructions
     tapping = visual.TextStim(
-        window,
-        _TAPPING_INSTRUCTIONS,
-        height=2,
-        wrapWidth=30,
+        win=window,
         name='tapping',
-        color='white')
+        text='Tap your fingers as\nquickly as possible!',
+        font=u'Arial',
+        height=2,
+        pos=(0, 0),
+        wrapWidth=30,
+        ori=0,
+        color='white',
+        colorSpace='rgb',
+        opacity=1,
+        depth=-1.0)
     # Rest between tasks
     crosshair = visual.TextStim(
-        window,
-        '+',
-        height=2,
+        win=window,
         name='crosshair',
-        color='white')
+        text='+',
+        font=u'Arial',
+        height=2,
+        pos=(0, 0),
+        wrapWidth=30,
+        ori=0,
+        color='white',
+        colorSpace='rgb',
+        opacity=1,
+        depth=-1.0)
     # Waiting for scanner
     waiting = visual.TextStim(
-        window,
-        'Waiting for scanner...',
+        win=window,
         name='waiting',
-        color='white')
+        text='Waiting for scanner...',
+        font=u'Arial',
+        height=2,
+        pos=(0, 0),
+        wrapWidth=30,
+        ori=0,
+        color='white',
+        colorSpace='rgb',
+        opacity=1,
+        depth=-1.0)
     end_screen = visual.TextStim(
-        window,
-        'The task is now complete.',
+        win=window,
         name='end_screen',
-        color='white')
+        text='The task is now complete.',
+        font=u'Arial',
+        height=2,
+        pos=(0, 0),
+        wrapWidth=30,
+        ori=0,
+        color='white',
+        colorSpace='rgb',
+        opacity=1,
+        depth=-1.0)
 
     # Scanner runtime
     # ---------------
@@ -266,31 +298,28 @@ if __name__ == '__main__':
     if exp_info['BioPac'] == 'Yes':
         ser.write('FF')
 
-    startTime = datetime.now()
     routine_clock = core.Clock()
-    trials_clock = core.Clock()
+    trial_clock = core.Clock()
     COLUMNS = ['onset', 'duration', 'trial_type', 'trial_number',
                'response_time', 'tap_count', 'tap_duration', 'stim_file']
     data_set = {c: [] for c in COLUMNS}
     if not op.isdir('data'):
         os.makedirs('data')
-    log_file = psychopy.logging.LogFile(logfile, level=psychopy.logging.DATA)
-    psychopy.logging.console.setLevel(psychopy.logging.DATA)
 
     # Start with six seconds of rest
-    draw(win=window, stim=crosshair, duration=LEAD_IN_DURATION)
+    draw(win=window, stim=crosshair, duration=LEAD_IN_DURATION, clock=trial_clock)
 
     c = 0  # trial counter
     for trial_num in config_df.index:
-        trials_clock.reset()
+        trial_clock.reset()
         trial_type = config_df.loc[trial_num, 'trial_type']
         trial_duration = config_df.loc[trial_num, 'duration']
-        rest_duration = config_df.loc[trial_num, 'iti']
+        iti_duration = config_df.loc[trial_num, 'iti']
         data_set['trial_number'].append(trial_num + 1)
         data_set['onset'].append(routine_clock.getTime())
         data_set['trial_type'].append(trial_type)
         task_keys = []
-        rest_keys = []
+        iti_keys = []
         if 'auditory' in trial_type:
             stim_file = config_df.loc[trial_num, 'stim_file']
             # audio
@@ -303,7 +332,8 @@ if __name__ == '__main__':
                                          duration=trial_duration, frequency=5)
         elif 'motor' in trial_type:
             # finger tapping
-            task_keys, _ = draw(win=window, stim=tapping, duration=trial_duration)
+            task_keys, _ = draw(win=window, stim=tapping, duration=trial_duration,
+                                clock=trial_clock)
         else:
             raise Exception()
 
@@ -314,39 +344,34 @@ if __name__ == '__main__':
         else:
             data_set['stim_file'].append('n/a')
 
-        data_set['duration'].append(trials_clock.getTime())
+        data_set['duration'].append(trial_clock.getTime())
 
         # Rest
         # For last trial, update fixation
         if trial_num == config_df.index.values[-1]:
-            rest_duration = (TOTAL_TIME - routine_clock.getTime()) - END_DUR
+            iti_duration = (RUN_DURATION - routine_clock.getTime())
 
-        rest_keys, _ = draw(win=window, stim=crosshair, duration=rest_duration)
-        if task_keys and rest_keys:
+        iti_keys, _ = draw(win=window, stim=crosshair, duration=iti_duration,
+                           clock=trial_clock)
+        if task_keys and iti_keys:
             data_set['response_time'].append(task_keys[0][1])
-            data_set['tap_duration'].append(rest_keys[-1][1] - task_keys[0][1])
-        elif task_keys and not rest_keys:
+            data_set['tap_duration'].append(iti_keys[-1][1] - task_keys[0][1])
+        elif task_keys and not iti_keys:
             data_set['response_time'].append(task_keys[0][1])
             data_set['tap_duration'].append(task_keys[-1][1] - task_keys[0][1])
-        elif rest_keys and not task_keys:
-            data_set['response_time'].append(rest_keys[0][1])
-            data_set['tap_duration'].append(rest_keys[-1][1] - rest_keys[0][1])
+        elif iti_keys and not task_keys:
+            data_set['response_time'].append(iti_keys[0][1])
+            data_set['tap_duration'].append(iti_keys[-1][1] - iti_keys[0][1])
         else:
             data_set['response_time'].append(np.nan)
             data_set['tap_duration'].append(np.nan)
-        data_set['tap_count'].append((len(task_keys) + len(rest_keys)))
+        data_set['tap_count'].append((len(task_keys) + len(iti_keys)))
 
         # Save updated output file
         out_frame = pd.DataFrame(data_set, columns=COLUMNS)
         out_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a', index=False)
-        psychopy.logging.flush()
 
-    # End with six seconds of rest. Scanner should stop after this.
-    duration = datetime.now() - startTime
-    new_end_dur = TOTAL_TIME - duration.total_seconds()
-    draw(win=window, stim=crosshair, duration=new_end_dur)
-    duration = datetime.now() - startTime
-    print('Total run duration: {}'.format(duration))
+    print('Total run duration: {}'.format(routine_clock.getTime()))
 
     # Compile file
     out_frame = pd.DataFrame(data_set, columns=COLUMNS)
@@ -357,8 +382,12 @@ if __name__ == '__main__':
         ser.close()
 
     # Scanner is off for this
-    draw(win=window, stim=end_screen, duration=2)
+    draw(win=window, stim=end_screen, duration=END_SCREEN_DURATION, clock=trial_clock)
     window.flip()
 
+    logging.flush()
+
+    # make sure everything is closed down
     del(checkerboards, audio_stimuli, tapping, crosshair, waiting, end_screen)
     window.close()
+    core.quit()

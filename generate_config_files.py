@@ -15,17 +15,6 @@ import pandas as pd
 from scipy.stats import gumbel_r
 import random
 
-# These tracks are 20 seconds long.
-# 10s versions created by
-# https://www.audiocheck.net/audiofrequencysignalgenerator_sinetone.php
-# Durations doubled with Audacity.
-old_files = [
-    'audio/250Hz_20s.wav',
-    'audio/500Hz_20s.wav',
-    'audio/600Hz_20s.wav',
-    'audio/750Hz_20s.wav',
-    'audio/850Hz_20s.wav']
-
 # These tracks come from freepd.com and were converted from mp3 to wav
 # Some files have been shortened to reduce low-volume intros
 _AUDIO_FILES = [
@@ -43,22 +32,24 @@ _AUDIO_FILES = [
     'audio/Shenzhen_Nightlife.wav',
     'audio/Stereotype_News.wav',  # starts at 1.5s
     'audio/Ukulele_Song.wav']
-TRIAL_DICT = {1: 'visual',
-              2: 'visual/auditory',
-              3: 'motor',
-              4: 'motor/auditory'}
-N_CONDS = len(TRIAL_DICT.keys())  # audio, checkerboard, tapping
-# For detection task
-N_BLOCKS = 4  # for each condition, for detection task
-# For estimation task
-N_TRIALS = 15  # for each condition, for estimation task
-DUR_RANGE = (0.5, 4)  # avg of 3s
-ITI_RANGE = (2, 8)  # max determined to minimize difference from TASK_TIME
-# General
+
+# General constants
+TOTAL_DURATION = 450
 TASK_TIME = 438  # time for trials in task
 LEAD_IN_DURATION = 6  # fixation before trials
-END_DUR = 6  # fixation after trials
-# total time = TASK_TIME + LEAD_IN_DURATION + END_DUR = 450 = 7.5 mins
+CONDITIONS = ['visual', 'visual/auditory', 'motor', 'motor/auditory']
+N_CONDS = len(CONDITIONS)  # audio, checkerboard, tapping
+
+# Detection task constants
+N_BLOCKS_PER_COND = 4  # for each condition, for detection task
+BLOCK_TRIAL_DUR = 14
+BLOCK_ITI_DUR = 14
+
+# Estimation task constants
+N_TRIALS_PER_COND = 15  # for each condition, for estimation task
+N_TRIALS_TOTAL = N_TRIALS_PER_COND * N_CONDS
+DUR_RANGE = (0.5, 4)  # avg of 3s
+ITI_RANGE = (2, 8)  # max determined to minimize difference from TASK_TIME
 
 
 def randomize_carefully(elems, n_repeat=2):
@@ -84,33 +75,32 @@ def randomize_carefully(elems, n_repeat=2):
     return res
 
 
-def detection_timing():
-    block_dur = 14
-    rest_dur = 14
-    durs = [block_dur] * N_BLOCKS * N_CONDS
-    itis = [rest_dur] * N_BLOCKS * N_CONDS
-    trial_types = randomize_carefully(list(TRIAL_DICT.keys()), N_BLOCKS)
-    trial_types = [TRIAL_DICT[tt] for tt in trial_types]
-    timing_info = np.vstack((durs, itis, trial_types)).T
-    timing_df = pd.DataFrame(columns=['duration', 'iti', 'trial_type'],
-                             data=timing_info)
+def determine_detection_timing():
+    """
+    Generates dataframe with timing info for block design version of task.
+    """
+    durs = [BLOCK_TRIAL_DUR] * N_BLOCKS_PER_COND * N_CONDS
+    itis = [BLOCK_ITI_DUR] * N_BLOCKS_PER_COND * N_CONDS
+    trial_types = randomize_carefully(CONDITIONS, N_BLOCKS_PER_COND)
+    timing_dict = {
+        'duration': durs,
+        'iti': itis,
+        'trial_type': trial_types,
+    }
+    timing_df = pd.DataFrame(timing_dict)
     return timing_df
 
 
-def estimation_timing(seed=None):
+def determine_estimation_timing(seed=None):
     """
-    Produces lists containing n_conds arrays of n_trials length for trial
-    durations and intertrial intervals based on a uniform distribution.
-    The process is iterative to minimize the amount of duration lost
+    Generates dataframe with timing info for event-related version of task.
     """
-    mu = 4.
+    mu = 4  # mean of 4s
     raw_itis = gumbel_r.rvs(size=100000, loc=mu, scale=1)
     possible_itis = np.round(raw_itis, 1)
     # crop to 2-8s
     possible_itis = possible_itis[possible_itis >= 2]
     possible_itis = possible_itis[possible_itis <= 8]
-
-    N_TRIALS_TOTAL = N_TRIALS * N_CONDS
 
     missing_time = np.finfo(dtype='float64').max
     if not seed:
@@ -122,18 +112,13 @@ def estimation_timing(seed=None):
         durations = np.round(durations, 1)
 
         itis = state.choice(possible_itis, size=N_TRIALS_TOTAL, replace=True)
-        missing_time = TASK_TIME - np.sum(durations + itis)
+        missing_time = TASK_TIME - np.sum([durations.sum(), itis.sum()])
         seed += 1
 
     # Fill in one trial's ITI with missing time for constant total time
-    missing_time = TASK_TIME - np.sum(durations + itis)
-    itis[-1] += missing_time
+    itis[-1] = TOTAL_DURATION - np.sum([LEAD_IN_DURATION, durations.sum(), itis[:-1].sum()])
 
-    # trial_types = list(range(1, N_CONDS + 1)) * N_TRIALS
-    # np.random.shuffle(trial_types)
-    trial_types = randomize_carefully(list(range(1, N_CONDS + 1)), N_TRIALS)
-
-    trial_types = [TRIAL_DICT[t] for t in trial_types]
+    trial_types = randomize_carefully(CONDITIONS, N_TRIALS_PER_COND)
     timing_dict = {
         'duration': durations,
         'iti': itis,
@@ -147,20 +132,18 @@ def determine_timing(ttype, seed=None):
     if ttype not in ['Detection', 'Estimation']:
         raise Exception()
 
-    n_audio_trials = N_TRIALS * len([k for k in TRIAL_DICT.values() if 'auditory' in k])
+    n_audio_trials = N_TRIALS_PER_COND * len([k for k in CONDITIONS if 'auditory' in k])
     n_audio_stimuli = len(_AUDIO_FILES)
     n_repeats = int(np.ceil(n_audio_trials / n_audio_stimuli))
-    audio_numbers = np.arange(n_audio_stimuli)
-    audio_numbers = np.repeat(audio_numbers, n_repeats)
-    np.random.shuffle(audio_numbers)  # pylint: disable=E1101
-    audio_files = [_AUDIO_FILES[tn] for tn in audio_numbers]
+    audio_files = _AUDIO_FILES * n_repeats
+    # Sampling method chosen to make number of dupes as equal as possible
+    audio_files = np.random.choice(audio_files, n_audio_trials, replace=False)
 
     # set order of trials
     if ttype == 'Estimation':
-        timing_df, seed = estimation_timing(seed=seed)
+        timing_df, seed = determine_estimation_timing(seed=seed)
     elif ttype == 'Detection':
-        # temporary requirement that trials divide evenly into block
-        timing_df = detection_timing()
+        timing_df = determine_detection_timing()
 
     c = 0
     for trial in timing_df.index:
