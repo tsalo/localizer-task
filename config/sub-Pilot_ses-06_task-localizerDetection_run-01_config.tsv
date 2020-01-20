@@ -1,17 +1,17 @@
 duration	iti	trial_type	stim_file
-14	14	motor/auditory	audio/Ambush_in_Rattlesnake_Gulch.wav
+14	14	visual/auditory	audio/Cumbish.wav
+14	14	motor/auditory	audio/Jack_The_Lumberer.wav
 14	14	visual	
-14	14	visual/auditory	audio/Le_Baguette.wav
+14	14	motor	
+14	14	visual/auditory	audio/Breaking_Bollywood.wav
+14	14	motor/auditory	audio/Improv_for_Evil.wav
 14	14	motor	
 14	14	visual	
 14	14	motor/auditory	audio/Cumbish.wav
-14	14	visual/auditory	audio/Stereotype_News.wav
 14	14	motor	
-14	14	visual/auditory	audio/Coy_Koi.wav
-14	14	motor/auditory	audio/Ukulele_Song.wav
+14	14	visual/auditory	audio/Ukulele_Song.wav
 14	14	visual	
 14	14	motor	
+14	14	motor/auditory	audio/Shenzhen_Nightlife.wav
+14	14	visual/auditory	audio/Funshine.wav
 14	14	visual	
-14	14	motor/auditory	audio/Le_Baguette.wav
-14	14	visual/auditory	audio/Desert_Conflict.wav
-14	14	motor	
