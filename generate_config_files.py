@@ -13,7 +13,6 @@ from __future__ import division, print_function
 import numpy as np
 import pandas as pd
 from scipy.stats import gumbel_r
-import random
 
 # These tracks come from freepd.com and were converted from mp3 to wav
 # Some files have been shortened to reduce low-volume intros
@@ -64,13 +63,13 @@ def randomize_carefully(elems, n_repeat=2):
             # Avoid the last placed element
             lst = list(s.difference({res[-1]}))
             # Shuffle
-            random.shuffle(lst)
+            np.random.shuffle(lst)
             lst.append(res[-1])
             # Shuffle once more to avoid obvious repeating patterns in the last position
-            lst[1:] = random.sample(lst[1:], len(lst)-1)
+            lst[1:] = np.random.choice(lst[1:], size=len(lst)-1, replace=False)
         else:
             lst = elems[:]
-            random.shuffle(lst)
+            np.random.shuffle(lst)
         res.extend(lst)
     return res
 
