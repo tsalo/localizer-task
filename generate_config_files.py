@@ -114,9 +114,6 @@ def determine_estimation_timing(seed=None):
         missing_time = TASK_TIME - np.sum([durations.sum(), itis.sum()])
         seed += 1
 
-    # Fill in one trial's ITI with missing time for constant total time
-    itis[-1] = TOTAL_DURATION - np.sum([LEAD_IN_DURATION, durations.sum(), itis[:-1].sum()])
-
     trial_types = randomize_carefully(CONDITIONS, N_TRIALS_PER_COND)
     timing_dict = {
         'duration': durations,
@@ -155,23 +152,14 @@ def determine_timing(ttype, seed=None):
 
 
 def main():
-    subjects = ['Blossom', 'Bubbles', 'Buttercup', 'Pilot', '01', '02', '03']
-    sessions = np.arange(1, 14, dtype=int).astype(str)  # 10
+    n_files = 100
     ttypes = ['Detection', 'Estimation']
     seed = 1
-    for sub in subjects:
-        print('Compiling subject {0}'.format(sub))
-        for ses in sessions:
-            print('    Compiling session {0}'.format(ses))
-            for ttype in ttypes:
-                print('\tCompiling {0} task'.format(ttype))
-                df, seed = determine_timing(ttype, seed=seed)
-                if ttype == 'Estimation':
-                    print('\t   Updating seed to {0}'.format(seed))
-
-                df.to_csv('config/sub-{0}_ses-{1}_task-localizer{2}_run-01_'
-                          'config.tsv'.format(sub.zfill(2), ses.zfill(2), ttype),
-                          sep='\t', index=False, float_format='%.1f')
+    for i_file in range(1, n_files+1):
+        for ttype in ttypes:
+            df, seed = determine_timing(ttype, seed=seed)
+            df.to_csv('config/config_{0}_{1:05d}.tsv'.format(ttype, i_file),
+                      sep='\t', index=False, float_format='%.1f')
 
 
 if __name__ == '__main__':

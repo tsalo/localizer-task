@@ -7,9 +7,5 @@
         "Description": "Duration of finger-tapping, from first button press to last button press within duration of trial and following fixation.",
         "LongName": "Tap duration",
         "Units": "[s] second"
-    },
-    "trial_number": {
-        "Description": "Index of the trial in time.",
-        "LongName": "trial number"
     }
 }
