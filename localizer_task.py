@@ -377,13 +377,15 @@ if __name__ == '__main__':
 
         # Save updated output file
         out_frame = pd.DataFrame(data_set, columns=COLUMNS)
-        out_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a', index=False)
+        out_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a',
+                         index=False, float_format='%.2f')
 
     print('Total run duration: {}'.format(routine_clock.getTime()))
 
     # Compile file
     out_frame = pd.DataFrame(data_set, columns=COLUMNS)
-    out_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a', index=False)
+    out_frame.to_csv(outfile, sep='\t', line_terminator='\n', na_rep='n/a',
+                     index=False, float_format='%.2f')
 
     if exp_info['BioPac'] == 'Yes':
         ser.write('00')
