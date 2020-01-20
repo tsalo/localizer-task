@@ -141,7 +141,7 @@ class Checkerboard(object):
         keyword arguments to visual.ImageStim
     """
 
-    def __init__(self, win, side_len=8, inverted=False, size=16, **kwargs):
+    def __init__(self, win, side_len=8, inverted=False, size=2, **kwargs):
         self.win = win
         self.side_len = side_len
         self.inverted = inverted
@@ -149,7 +149,7 @@ class Checkerboard(object):
 
         self._array = self._get_array()
         self._stim = visual.RadialStim(
-            win=self.win, tex=self._array, size=self.size, radialCycles=1,
+            win=self.win, tex=self._array, size=(self.size, self.size), radialCycles=1,
             **kwargs
         )
 
@@ -184,10 +184,10 @@ if __name__ == '__main__':
     all_config_files = [op.basename(acf) for acf in all_config_files]
     all_subjects = sorted(list(set([acf.split('_')[0].split('-')[1] for acf in all_config_files])))
     all_sessions = sorted(list(set([acf.split('_')[1].split('-')[1] for acf in all_config_files])))
-    exp_info = {'Subject': all_subjects,
+    exp_info = {'Subject': all_subjects[::-1],
                 'Session': all_sessions,
                 'Run Type': ['Estimation', 'Detection'],
-                'BioPac': ['Yes', 'No']}
+                'BioPac': ['No', 'Yes']}
     dlg = gui.DlgFromDict(
         exp_info,
         title='Localization task',
@@ -196,7 +196,7 @@ if __name__ == '__main__':
         fullscr=False,
         size=(800, 600),
         monitor='testMonitor',
-        units='deg',
+        units='norm',
         allowStencil=False,
         allowGUI=False,
         color='black',
@@ -217,11 +217,20 @@ if __name__ == '__main__':
     logfile = logging.LogFile(filename + '.log', level=logging.EXP)
     logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
 
+    # Check for existence of output files
+    config_files = sorted(glob(op.join(
+        script_dir, 'config/config_{}_*.tsv'.format(exp_info['Run Type']))))
+    config_file = np.random.choice(config_files, size=1)[0]
+    config_df = pd.read_table(config_file)
+    # Shuffle timing. Trial types and stimuli are already nicely balanced.
+    columns_to_shuffle = ['duration', 'iti']
+    for c in columns_to_shuffle:
+        shuffle_idx = np.random.permutation(config_df.index.values)
+        config_df[c] = config_df.loc[shuffle_idx, c].reset_index(drop=True)
+
     outfile = filename + '.tsv'
     if op.exists(outfile) and 'Pilot' not in outfile:
         raise ValueError('Output file already exists.')
-    config_file = op.join(script_dir, 'config/{0}_config.tsv'.format(base_name))
-    config_df = pd.read_table(config_file)
 
     # Initialize stimuli
     # ------------------
@@ -236,7 +245,7 @@ if __name__ == '__main__':
         name='tapping',
         text='Tap your fingers as\nquickly as possible!',
         font=u'Arial',
-        height=2,
+        height=0.15,
         pos=(0, 0),
         wrapWidth=30,
         ori=0,
@@ -250,7 +259,7 @@ if __name__ == '__main__':
         name='crosshair',
         text='+',
         font=u'Arial',
-        height=2,
+        height=0.15,
         pos=(0, 0),
         wrapWidth=30,
         ori=0,
@@ -264,7 +273,7 @@ if __name__ == '__main__':
         name='waiting',
         text='Waiting for scanner...',
         font=u'Arial',
-        height=2,
+        height=0.15,
         pos=(0, 0),
         wrapWidth=30,
         ori=0,
@@ -277,7 +286,7 @@ if __name__ == '__main__':
         name='end_screen',
         text='The task is now complete.',
         font=u'Arial',
-        height=2,
+        height=0.15,
         pos=(0, 0),
         wrapWidth=30,
         ori=0,
@@ -300,8 +309,8 @@ if __name__ == '__main__':
 
     routine_clock = core.Clock()
     trial_clock = core.Clock()
-    COLUMNS = ['onset', 'duration', 'trial_type', 'trial_number',
-               'response_time', 'tap_count', 'tap_duration', 'stim_file']
+    COLUMNS = ['onset', 'duration', 'trial_type', 'response_time',
+               'tap_count', 'tap_duration', 'stim_file']
     data_set = {c: [] for c in COLUMNS}
     if not op.isdir('data'):
         os.makedirs('data')
@@ -315,7 +324,6 @@ if __name__ == '__main__':
         trial_type = config_df.loc[trial_num, 'trial_type']
         trial_duration = config_df.loc[trial_num, 'duration']
         iti_duration = config_df.loc[trial_num, 'iti']
-        data_set['trial_number'].append(trial_num + 1)
         data_set['onset'].append(routine_clock.getTime())
         data_set['trial_type'].append(trial_type)
         task_keys = []
