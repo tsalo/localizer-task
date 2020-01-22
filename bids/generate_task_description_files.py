@@ -1,6 +1,6 @@
 import json
 
-descriptions = {
+events_description = {
     'tap_count': {
         'LongName': 'Tap count',
         'Description': ('Number of button presses within duration of trial, '
@@ -16,8 +16,24 @@ descriptions = {
     }
 }
 
+bold_est_description = {
+    'CogAtlasID': 'trm_553e85265f51e',
+    'TaskName': 'M1/V1/A1 HRF estimation'
+}
+
+bold_det_description = {
+    'CogAtlasID': 'trm_553e85265f51e',
+    'TaskName': 'M1/V1/A1 localization'
+}
+
 with open('task-localizerEstimation_events.json', 'w') as fo:
-    json.dump(descriptions, fo, sort_keys=True, indent=4)
+    json.dump(events_description, fo, sort_keys=True, indent=4)
 
 with open('task-localizerDetection_events.json', 'w') as fo:
-    json.dump(descriptions, fo, sort_keys=True, indent=4)
+    json.dump(events_description, fo, sort_keys=True, indent=4)
+
+with open('task-localizerEstimation_bold.json', 'w') as fo:
+    json.dump(bold_est_description, fo, sort_keys=True, indent=4)
+
+with open('task-localizerDetection_bold.json', 'w') as fo:
+    json.dump(bold_det_description, fo, sort_keys=True, indent=4)
