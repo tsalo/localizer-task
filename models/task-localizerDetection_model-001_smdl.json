@@ -1,0 +1,135 @@
+{
+  "Name": "localizer_model1",
+  "Description": "Simple comparisons for localizer task",
+  "Input": {
+    "task": "localizerDetection"
+  },
+  "Steps": [
+    {
+      "Level": "run",
+      "Transformations": [
+        {
+          "Name": "Factor",
+          "Input": [
+            "trial_type"
+          ]
+        },
+        {
+          "Name": "Or",
+          "Input": [
+            "trial_type.auditory",
+            "trial_type.auditory/motor",
+            "trial_type.auditory/visual"
+          ],
+          "Output": [
+            "auditory"
+          ]
+        },
+        {
+          "Name": "Or",
+          "Input": [
+            "trial_type.motor",
+            "trial_type.auditory/motor"
+          ],
+          "Output": [
+            "motor"
+          ]
+        },
+        {
+          "Name": "Or",
+          "Input": [
+            "trial_type.visual",
+            "trial_type.auditory/visual"
+          ],
+          "Output": [
+            "visual"
+          ]
+        },
+        {
+          "Name": "Convolve",
+          "Input": [
+            "auditory",
+            "motor",
+            "visual"
+          ]
+        }
+      ],
+      "Model": {
+        "X": [
+          "auditory",
+          "motor",
+          "visual",
+          "framewise_displacement",
+          "trans_x",
+          "trans_y",
+          "trans_z",
+          "rot_x",
+          "rot_y",
+          "rot_z",
+          "a_comp_cor_00",
+          "a_comp_cor_01",
+          "a_comp_cor_02",
+          "a_comp_cor_03",
+          "a_comp_cor_04",
+          "a_comp_cor_05"
+        ]
+      },
+      "Contrasts": [
+        {
+          "Name": "auditory_vs_others",
+          "ConditionList": [
+            "auditory",
+            "motor",
+            "visual"
+          ],
+          "Weights": [
+            1,
+            -0.5,
+            -0.5
+          ],
+          "Type": "t"
+        },
+        {
+          "Name": "motor_vs_others",
+          "ConditionList": [
+            "auditory",
+            "motor",
+            "visual"
+          ],
+          "Weights": [
+            -0.5,
+            1,
+            -0.5
+          ],
+          "Type": "t"
+        },
+        {
+          "Name": "visual_vs_others",
+          "ConditionList": [
+            "auditory",
+            "motor",
+            "visual"
+          ],
+          "Weights": [
+            -0.5,
+            -0.5,
+            1
+          ],
+          "Type": "t"
+        }
+      ]
+    },
+    {
+      "Level": "subject",
+      "DummyContrasts": {
+        "Type": "FEMA"
+      }
+    },
+    {
+      "Level": "dataset",
+      "DummyContrasts": {
+        "Type": "t"
+      }
+    }
+  ]
+}
