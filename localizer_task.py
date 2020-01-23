@@ -1,10 +1,10 @@
 """
-Slow event-related design for HRF estimation for M1, V1, and A1.
+Task for M1, V1, and A1 localization and estimation.
 
 Single-run task that includes the following conditions:
 - flashing checkerboard
 - finger tapping
-- listening to audio_stimuli/music
+- listening to music
 
 Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
