@@ -68,7 +68,7 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
     response.tStart = start_time
     response.frameNStart = 0
     response.status = STARTED
-    window.callOnFlip(response.clock.reset)
+    win.callOnFlip(response.clock.reset)
     event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
         keys = event.getKeys(keyList=['1', '2'],
@@ -93,6 +93,25 @@ def flash_stimuli(win, stimuli, duration, frequency=1):
     return response.keys, response.rt
 
 
+def draw_until_keypress(win, stim, continueKeys=['5']):
+    """
+    """
+    response = event.BuilderKeyResponse()
+    win.callOnFlip(response.clock.reset)
+    event.clearEvents(eventType='keyboard')
+    while True:
+        if isinstance(stim, list):
+            for s in stim:
+                s.draw()
+        else:
+            stim.draw()
+        keys = event.getKeys(keyList=continueKeys)
+        if any([ck in keys for ck in continueKeys]):
+            return
+        close_on_esc(win)
+        win.flip()
+
+
 def draw(win, stim, duration, clock):
     """
     Draw stimulus for a given duration.
@@ -110,7 +129,7 @@ def draw(win, stim, duration, clock):
     response.tStart = start_time
     response.frameNStart = 0
     response.status = STARTED
-    window.callOnFlip(response.clock.reset)
+    win.callOnFlip(response.clock.reset)
     event.clearEvents(eventType='keyboard')
     while time.time() - start_time < duration:
         stim.draw()
@@ -142,7 +161,7 @@ class Checkerboard(object):
         keyword arguments to visual.ImageStim
     """
 
-    def __init__(self, win, side_len=8, inverted=False, size=2, **kwargs):
+    def __init__(self, win, side_len=8, inverted=False, size=700, **kwargs):
         self.win = win
         self.side_len = side_len
         self.inverted = inverted
@@ -190,10 +209,10 @@ if __name__ == '__main__':
         title='Localization task',
         order=['Subject', 'Session', 'Run Type', 'BioPac'])
     window = visual.Window(
-        fullscr=False,
+        fullscr=True,
         size=(800, 600),
         monitor='testMonitor',
-        units='norm',
+        units='pix',
         allowStencil=False,
         allowGUI=False,
         color='black',
@@ -246,9 +265,9 @@ if __name__ == '__main__':
         name='tapping',
         text='Tap your fingers as\nquickly as possible!',
         font=u'Arial',
-        height=0.15,
+        height=30,
         pos=(0, 0),
-        wrapWidth=30,
+        wrapWidth=None,
         ori=0,
         color='white',
         colorSpace='rgb',
@@ -260,9 +279,9 @@ if __name__ == '__main__':
         name='crosshair',
         text='+',
         font=u'Arial',
-        height=0.15,
+        height=20,
         pos=(0, 0),
-        wrapWidth=30,
+        wrapWidth=None,
         ori=0,
         color='white',
         colorSpace='rgb',
@@ -274,9 +293,9 @@ if __name__ == '__main__':
         name='waiting',
         text='Waiting for scanner...',
         font=u'Arial',
-        height=0.15,
+        height=30,
         pos=(0, 0),
-        wrapWidth=30,
+        wrapWidth=None,
         ori=0,
         color='white',
         colorSpace='rgb',
@@ -287,9 +306,9 @@ if __name__ == '__main__':
         name='end_screen',
         text='The task is now complete.',
         font=u'Arial',
-        height=0.15,
+        height=30,
         pos=(0, 0),
-        wrapWidth=30,
+        wrapWidth=None,
         ori=0,
         color='white',
         colorSpace='rgb',
@@ -302,9 +321,7 @@ if __name__ == '__main__':
     if exp_info['BioPac'] == 'Yes':
         ser.write('RR')
 
-    waiting.draw()
-    window.flip()
-    event.waitKeys(keyList=['5'])
+    draw_until_keypress(win=window, stim=waiting)
     if exp_info['BioPac'] == 'Yes':
         ser.write('FF')
 
