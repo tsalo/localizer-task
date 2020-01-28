@@ -203,7 +203,7 @@ if __name__ == '__main__':
     exp_info = {'Subject': '',
                 'Session': '',
                 'Run Type': ['Estimation', 'Detection'],
-                'BioPac': ['No', 'Yes']}
+                'BioPac': ['Yes', 'No']}
     dlg = gui.DlgFromDict(
         exp_info,
         title='Localization task',
