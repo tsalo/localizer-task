@@ -1,10 +1,10 @@
 """
-Slow event-related design for HRF estimation for M1, V1, and A1.
+Task for M1, V1, and A1 localization and estimation.
 
 Single-run task that includes the following conditions:
 - flashing checkerboard
 - finger tapping
-- listening to audio_stimuli/music
+- listening to music
 
 Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
@@ -13,6 +13,7 @@ from __future__ import absolute_import, division, print_function
 import time
 import os
 import os.path as op
+import sys
 from glob import glob
 
 import serial
@@ -180,12 +181,8 @@ if __name__ == '__main__':
     # Collect user input
     # ------------------
     # Remember to turn fullscr to True for the real deal.
-    all_config_files = sorted(glob('config/sub*_config.tsv'))
-    all_config_files = [op.basename(acf) for acf in all_config_files]
-    all_subjects = sorted(list(set([acf.split('_')[0].split('-')[1] for acf in all_config_files])))
-    all_sessions = sorted(list(set([acf.split('_')[1].split('-')[1] for acf in all_config_files])))
-    exp_info = {'Subject': all_subjects[::-1],
-                'Session': all_sessions,
+    exp_info = {'Subject': '',
+                'Session': '',
                 'Run Type': ['Estimation', 'Detection'],
                 'BioPac': ['No', 'Yes']}
     dlg = gui.DlgFromDict(
@@ -206,20 +203,23 @@ if __name__ == '__main__':
     if not dlg.OK:
         core.quit()
 
+    if not op.isdir(op.join(script_dir, 'data')):
+        os.makedirs(op.join(script_dir, 'data'))
+
     if exp_info['BioPac'] == 'Yes':
         ser = serial.Serial('COM2', 115200)
 
     base_name = 'sub-{0}_ses-{1}_task-localizer{2}_run-01'.format(
-        exp_info['Subject'],
-        exp_info['Session'],
+        exp_info['Subject'].zfill(2),
+        exp_info['Session'].zfill(2),
         exp_info['Run Type'])
     filename = op.join(script_dir, 'data/{0}_events'.format(base_name))
     logfile = logging.LogFile(filename + '.log', level=logging.EXP)
     logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
 
-    # Check for existence of output files
-    config_files = sorted(glob(op.join(
-        script_dir, 'config/config_{}_*.tsv'.format(exp_info['Run Type']))))
+    # Get config
+    config_files = glob(op.join(
+        script_dir, 'config/config_{}_*.tsv'.format(exp_info['Run Type'])))
     config_file = np.random.choice(config_files, size=1)[0]
     config_df = pd.read_table(config_file)
     # Shuffle timing. Trial types and stimuli are already nicely balanced.
@@ -228,6 +228,7 @@ if __name__ == '__main__':
         shuffle_idx = np.random.permutation(config_df.index.values)
         config_df[c] = config_df.loc[shuffle_idx, c].reset_index(drop=True)
 
+    # Check for existence of output files
     outfile = filename + '.tsv'
     if op.exists(outfile) and 'Pilot' not in outfile:
         raise ValueError('Output file already exists.')
@@ -312,8 +313,6 @@ if __name__ == '__main__':
     COLUMNS = ['onset', 'duration', 'trial_type', 'response_time',
                'tap_count', 'tap_duration', 'stim_file']
     data_set = {c: [] for c in COLUMNS}
-    if not op.isdir('data'):
-        os.makedirs('data')
 
     # Start with six seconds of rest
     draw(win=window, stim=crosshair, duration=LEAD_IN_DURATION, clock=trial_clock)
