@@ -12,17 +12,11 @@ Instructions:
 
 from __future__ import absolute_import, division, print_function
 import time
-import os
 import os.path as op
 import sys
-from glob import glob
-
-import serial
-import numpy as np
-import pandas as pd
 
 import psychopy
-from psychopy import core, event, gui, visual, sound, logging
+from psychopy import core, event, visual, sound
 from psychopy.constants import STARTED, STOPPED  # pylint: disable=E0401
 psychopy.prefs.general['audioLib'] = ['sounddevice', 'pygame']
 # psychopy.prefs.general['audioDevice'] = ['Built-in Output']
@@ -152,10 +146,10 @@ if __name__ == '__main__':
 
     audio_stimulus.play()
     draw_until_keypress(win=window, stim=query, continueKeys=['space'])
-    audio.stimulus.stop()
+    audio_stimulus.stop()
     window.flip()
 
     # make sure everything is closed down
-    del(checkerboards, audio_stimuli, tapping, crosshair, waiting, end_screen)
+    del(audio_stimulus, waiting, query)
     window.close()
     core.quit()
