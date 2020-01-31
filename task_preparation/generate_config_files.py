@@ -10,6 +10,7 @@ Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
 
 from __future__ import division, print_function
+import os.path as op
 import numpy as np
 import pandas as pd
 from scipy.stats import gumbel_r
@@ -154,11 +155,12 @@ def determine_timing(ttype, seed=None):
 def main():
     n_files = 100
     ttypes = ['Detection', 'Estimation']
+    out_dir = op.realpath('../config/')
     seed = 1
     for i_file in range(1, n_files+1):
         for ttype in ttypes:
             df, seed = determine_timing(ttype, seed=seed)
-            df.to_csv('config/config_{0}_{1:05d}.tsv'.format(ttype, i_file),
+            df.to_csv(op.join(out_dir, 'config_{0}_{1:05d}.tsv'.format(ttype, i_file)),
                       sep='\t', index=False, float_format='%.1f')
 
 
