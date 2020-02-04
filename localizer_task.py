@@ -26,6 +26,8 @@ from psychopy.constants import STARTED, STOPPED  # pylint: disable=E0401
 psychopy.prefs.general['audioLib'] = ['sounddevice', 'pygame']
 # psychopy.prefs.general['audioDevice'] = ['Built-in Output']
 
+from utils import biopac_signature
+
 # Constants
 TRIAL_DICT = {1: 'visual',
               2: 'visual/auditory',
@@ -227,6 +229,10 @@ if __name__ == '__main__':
 
     if exp_info['BioPac'] == 'Yes':
         ser = serial.Serial('COM2', 115200)
+        if exp_info['Run Type'] == 'Estimation':
+            biopac_signature(ser, ':LE:')
+        else:
+            biopac_signature(ser, ':LD:')
 
     base_name = 'sub-{0}_ses-{1}_task-localizer{2}_run-01'.format(
         exp_info['Subject'].zfill(2),
