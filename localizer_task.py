@@ -8,10 +8,9 @@ Single-run task that includes the following conditions:
 Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
 
-import time
 import os
-import os.path as op
 import sys
+import time
 from glob import glob
 
 import numpy as np
@@ -20,8 +19,9 @@ import pandas as pd
 import psychopy
 from psychopy import core, event, gui, visual, sound, logging
 from psychopy.constants import STARTED, STOPPED  # pylint: disable=E0401
+from psychopy_visionscience.radial import RadialStim
 
-psychopy.prefs.general["audioLib"] = ["sounddevice", "pygame"]
+psychopy.prefs.general["audioLib"] = ["PTB", "sounddevice", "pygame"]
 # psychopy.prefs.general['audioDevice'] = ['Built-in Output']
 
 # Constants
@@ -160,7 +160,7 @@ class Checkerboard(object):
         self.size = size
 
         self._array = self._get_array()
-        self._stim = visual.RadialStim(
+        self._stim = RadialStim(
             win=self.win,
             tex=self._array,
             size=(self.size, self.size),
@@ -187,11 +187,11 @@ class Checkerboard(object):
 if __name__ == "__main__":
     # Ensure that relative paths start from the same directory as this script
     try:
-        script_dir = op.dirname(op.abspath(__file__)).decode(
+        script_dir = os.path.dirname(os.path.abspath(__file__)).decode(
             sys.getfilesystemencoding()
         )
     except AttributeError:
-        script_dir = op.dirname(op.abspath(__file__))
+        script_dir = os.path.dirname(os.path.abspath(__file__))
 
     # Collect user input
     # ------------------
@@ -203,9 +203,8 @@ if __name__ == "__main__":
         "Run Number": "",
     }
     dlg = gui.DlgFromDict(
-        exp_info,
+        dictionary=exp_info,
         title="Localization task",
-        order=["Subject", "Session", "Run Type", "Run Number"],
     )
     window = visual.Window(
         fullscr=True,
@@ -222,8 +221,8 @@ if __name__ == "__main__":
     if not dlg.OK:
         core.quit()
 
-    if not op.isdir(op.join(script_dir, "data")):
-        os.makedirs(op.join(script_dir, "data"))
+    if not os.path.isdir(os.path.join(script_dir, "data")):
+        os.makedirs(os.path.join(script_dir, "data"))
 
     base_name = (
         f"sub-{exp_info['Subject'].zfill(2)}_"
@@ -231,13 +230,13 @@ if __name__ == "__main__":
         f"task-localizer{exp_info['Run Type']}_"
         f"run-{exp_info['Run Number'].zfill(2)}"
     )
-    filename = op.join(script_dir, f"data/{base_name}_events")
+    filename = os.path.join(script_dir, f"data/{base_name}_events")
     logfile = logging.LogFile(filename + ".log", level=logging.EXP)
     logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
 
     # Get config
     config_files = glob(
-        op.join(script_dir, f"config/config_{exp_info['Run Type']}_*.tsv")
+        os.path.join(script_dir, f"config/config_{exp_info['Run Type']}_*.tsv")
     )
     config_file = np.random.choice(config_files, size=1)[0]
     config_df = pd.read_table(config_file)
@@ -249,7 +248,7 @@ if __name__ == "__main__":
 
     # Check for existence of output files
     outfile = filename + ".tsv"
-    if op.exists(outfile) and "Pilot" not in outfile:
+    if os.path.exists(outfile) and "Pilot" not in outfile:
         raise ValueError("Output file already exists.")
 
     # Initialize stimuli
@@ -259,7 +258,7 @@ if __name__ == "__main__":
     # Tones
     audio_files = sorted(config_df["stim_file"].dropna().unique())
     audio_stimuli = [
-        sound.Sound(op.join(script_dir, "stimuli", tf)) for tf in audio_files
+        sound.Sound(os.path.join(script_dir, "stimuli", tf)) for tf in audio_files
     ]
     # Finger tapping instructions
     tapping = visual.TextStim(
@@ -409,7 +408,6 @@ if __name__ == "__main__":
         out_frame.to_csv(
             outfile,
             sep="\t",
-            line_terminator="\n",
             na_rep="n/a",
             index=False,
             float_format="%.2f",
@@ -422,7 +420,6 @@ if __name__ == "__main__":
     out_frame.to_csv(
         outfile,
         sep="\t",
-        line_terminator="\n",
         na_rep="n/a",
         index=False,
         float_format="%.2f",
