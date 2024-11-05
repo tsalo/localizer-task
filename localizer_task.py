@@ -5,6 +5,9 @@ Single-run task that includes the following conditions:
 - finger tapping
 - listening to music
 
+The music is presented concurrently with flashing checkerboard and finger
+tapping.
+
 Originally created by Jakub Kaczmarzyk and adapted to combine tasks.
 """
 

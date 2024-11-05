@@ -6,10 +6,9 @@ The estimation task is a fast event-related design with the same conditions as t
 
 These tasks are adapted from a PsychoPy demo task created by Jakub Kaczmarzyk.
 
-## BioPac integration
+## Requirements
 
-This task is designed to support BioPac synchronization, although it is configured for FIU's setup specifically.
-You may need to change the serial settings to fit your own setup.
+With newer versions of PsychoPy (at least ~24) you need to install psychopy-visionscience as a plugin.
 
 ## Configuration files
 
